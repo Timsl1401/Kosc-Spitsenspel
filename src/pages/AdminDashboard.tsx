@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../contexts/AdminContext';
 import { supabase } from '../lib/supabase';
-import { Shield, Users, Target, AlertTriangle, Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Shield, Users, Target, AlertTriangle, Plus, Edit, Trash2, Save, X, Calendar, MessageSquare } from 'lucide-react';
 
 interface Player {
   id: string;
@@ -26,7 +26,7 @@ const AdminDashboard: React.FC = () => {
   const { isAdmin, loading } = useAdmin();
   const [players, setPlayers] = useState<Player[]>([]);
   const [suspiciousActivities, setSuspiciousActivities] = useState<SuspiciousActivity[]>([]);
-  const [activeTab, setActiveTab] = useState<'players' | 'goals' | 'monitoring'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'goals' | 'dates' | 'feedback' | 'monitoring'>('players');
   
   // Player management states
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
@@ -44,10 +44,38 @@ const AdminDashboard: React.FC = () => {
   const [matchDate, setMatchDate] = useState('');
   const [matchType, setMatchType] = useState<'competition' | 'friendly'>('competition');
 
+  // Date management states
+  const [gameSettings, setGameSettings] = useState<{
+    start_deadline: string;
+    season_start: string;
+    season_end: string;
+    transfer_window_open: string;
+    transfer_window_close: string;
+  }>({
+    start_deadline: '',
+    season_start: '',
+    season_end: '',
+    transfer_window_open: '',
+    transfer_window_close: ''
+  });
+
+  // Feedback states
+  const [feedback, setFeedback] = useState<Array<{
+    id: string;
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    rating: number;
+    created_at: string;
+  }>>([]);
+
   useEffect(() => {
     if (isAdmin) {
       loadPlayers();
       loadSuspiciousActivities();
+      loadGameSettings();
+      loadFeedback();
     }
   }, [isAdmin]);
 
@@ -190,6 +218,61 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const loadGameSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('game_settings')
+        .select('*');
+
+      if (error) throw error;
+
+      const settings: any = {};
+      data?.forEach(setting => {
+        settings[setting.key] = setting.value;
+      });
+
+      setGameSettings({
+        start_deadline: settings.start_deadline || '',
+        season_start: settings.season_start || '',
+        season_end: settings.season_end || '',
+        transfer_window_open: settings.transfer_window_open || '',
+        transfer_window_close: settings.transfer_window_close || ''
+      });
+    } catch (error) {
+      console.error('Error loading game settings:', error);
+    }
+  };
+
+  const loadFeedback = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('feedback')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFeedback(data || []);
+    } catch (error) {
+      console.error('Error loading feedback:', error);
+    }
+  };
+
+  const updateGameSetting = async (key: string, value: string) => {
+    try {
+      const { error } = await supabase
+        .from('game_settings')
+        .upsert({ key, value }, { onConflict: 'key' });
+
+      if (error) throw error;
+
+      await loadGameSettings();
+      alert('Instelling succesvol bijgewerkt!');
+    } catch (error) {
+      console.error('Error updating game setting:', error);
+      alert('Fout bij bijwerken instelling');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -256,17 +339,39 @@ const AdminDashboard: React.FC = () => {
                 <Target className="inline-block w-4 h-4 mr-2" />
                 Doelpunten Toevoegen
               </button>
-              <button
-                onClick={() => setActiveTab('monitoring')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'monitoring'
-                    ? 'border-green-500 text-green-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <AlertTriangle className="inline-block w-4 h-4 mr-2" />
-                Monitoring
-              </button>
+                               <button
+                   onClick={() => setActiveTab('dates')}
+                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                     activeTab === 'dates'
+                       ? 'border-green-500 text-green-600'
+                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                   }`}
+                 >
+                   <Calendar className="inline-block w-4 h-4 mr-2" />
+                   Datums
+                 </button>
+                 <button
+                   onClick={() => setActiveTab('feedback')}
+                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                     activeTab === 'feedback'
+                       ? 'border-green-500 text-green-600'
+                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                   }`}
+                 >
+                   <MessageSquare className="inline-block w-4 h-4 mr-2" />
+                   Feedback
+                 </button>
+                 <button
+                   onClick={() => setActiveTab('monitoring')}
+                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                     activeTab === 'monitoring'
+                       ? 'border-green-500 text-green-600'
+                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                   }`}
+                 >
+                   <AlertTriangle className="inline-block w-4 h-4 mr-2" />
+                   Monitoring
+                 </button>
             </nav>
           </div>
         </div>
@@ -546,7 +651,226 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'monitoring' && (
+                 {activeTab === 'dates' && (
+           <div className="space-y-6">
+             {/* Game Settings Management */}
+             <div className="bg-white rounded-lg shadow-sm p-6">
+               <h2 className="text-xl font-semibold text-gray-900 mb-4">Game Instellingen</h2>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div className="space-y-4">
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                       Transfer Deadline
+                     </label>
+                     <div className="flex space-x-2">
+                       <input
+                         type="date"
+                         value={gameSettings.start_deadline}
+                         onChange={(e) => setGameSettings({ ...gameSettings, start_deadline: e.target.value })}
+                         className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                       />
+                       <button
+                         onClick={() => updateGameSetting('start_deadline', gameSettings.start_deadline)}
+                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                       >
+                         Opslaan
+                       </button>
+                     </div>
+                     <p className="text-sm text-gray-500 mt-1">
+                       Na deze datum kunnen spelers alleen nog 3 transfers maken
+                     </p>
+                   </div>
+
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                       Seizoen Start
+                     </label>
+                     <div className="flex space-x-2">
+                       <input
+                         type="date"
+                         value={gameSettings.season_start}
+                         onChange={(e) => setGameSettings({ ...gameSettings, season_start: e.target.value })}
+                         className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                       />
+                       <button
+                         onClick={() => updateGameSetting('season_start', gameSettings.season_start)}
+                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                       >
+                         Opslaan
+                       </button>
+                     </div>
+                   </div>
+
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                       Seizoen Einde
+                     </label>
+                     <div className="flex space-x-2">
+                       <input
+                         type="date"
+                         value={gameSettings.season_end}
+                         onChange={(e) => setGameSettings({ ...gameSettings, season_end: e.target.value })}
+                         className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                       />
+                       <button
+                         onClick={() => updateGameSetting('season_end', gameSettings.season_end)}
+                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                       >
+                         Opslaan
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+
+                 <div className="space-y-4">
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                       Transfer Venster Open
+                     </label>
+                     <div className="flex space-x-2">
+                       <input
+                         type="date"
+                         value={gameSettings.transfer_window_open}
+                         onChange={(e) => setGameSettings({ ...gameSettings, transfer_window_open: e.target.value })}
+                         className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                       />
+                       <button
+                         onClick={() => updateGameSetting('transfer_window_open', gameSettings.transfer_window_open)}
+                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                       >
+                         Opslaan
+                       </button>
+                     </div>
+                   </div>
+
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                       Transfer Venster Sluit
+                     </label>
+                     <div className="flex space-x-2">
+                       <input
+                         type="date"
+                         value={gameSettings.transfer_window_close}
+                         onChange={(e) => setGameSettings({ ...gameSettings, transfer_window_close: e.target.value })}
+                         className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                       />
+                       <button
+                         onClick={() => updateGameSetting('transfer_window_close', gameSettings.transfer_window_close)}
+                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                       >
+                         Opslaan
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+
+             {/* Current Status */}
+             <div className="bg-white rounded-lg shadow-sm p-6">
+               <h2 className="text-xl font-semibold text-gray-900 mb-4">Huidige Status</h2>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 <div className="text-center p-4 bg-blue-50 rounded-lg">
+                   <div className="text-lg font-semibold text-blue-800">
+                     {gameSettings.start_deadline ? new Date(gameSettings.start_deadline).toLocaleDateString('nl-NL') : 'Niet ingesteld'}
+                   </div>
+                   <div className="text-blue-600">Transfer Deadline</div>
+                 </div>
+                 <div className="text-center p-4 bg-green-50 rounded-lg">
+                   <div className="text-lg font-semibold text-green-800">
+                     {gameSettings.season_start ? new Date(gameSettings.season_start).toLocaleDateString('nl-NL') : 'Niet ingesteld'}
+                   </div>
+                   <div className="text-green-600">Seizoen Start</div>
+                 </div>
+                 <div className="text-center p-4 bg-purple-50 rounded-lg">
+                   <div className="text-lg font-semibold text-purple-800">
+                     {gameSettings.season_end ? new Date(gameSettings.season_end).toLocaleDateString('nl-NL') : 'Niet ingesteld'}
+                   </div>
+                   <div className="text-purple-600">Seizoen Einde</div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         )}
+
+         {activeTab === 'feedback' && (
+           <div className="space-y-6">
+             {/* Feedback Overview */}
+             <div className="bg-white rounded-lg shadow-sm p-6">
+               <h2 className="text-xl font-semibold text-gray-900 mb-4">Feedback Overzicht ({feedback.length})</h2>
+               {feedback.length === 0 ? (
+                 <div className="text-center py-8 text-gray-500">
+                   <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                   <p>Nog geen feedback ontvangen</p>
+                 </div>
+               ) : (
+                 <div className="space-y-4">
+                   {feedback.map((item) => (
+                     <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                       <div className="flex items-start justify-between">
+                         <div className="flex-1">
+                           <div className="flex items-center space-x-3 mb-2">
+                             <h3 className="text-lg font-semibold text-gray-900">{item.subject}</h3>
+                             <div className="flex items-center space-x-1">
+                               {[...Array(5)].map((_, i) => (
+                                 <span
+                                   key={i}
+                                   className={`text-lg ${
+                                     i < item.rating ? 'text-yellow-400' : 'text-gray-300'
+                                   }`}
+                                 >
+                                   ★
+                                 </span>
+                               ))}
+                             </div>
+                           </div>
+                           <div className="text-sm text-gray-600 mb-2">
+                             <strong>Van:</strong> {item.name} ({item.email})
+                           </div>
+                           <div className="text-gray-800 mb-2">{item.message}</div>
+                           <div className="text-xs text-gray-500">
+                             {new Date(item.created_at).toLocaleString('nl-NL')}
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               )}
+             </div>
+
+             {/* Feedback Statistics */}
+             <div className="bg-white rounded-lg shadow-sm p-6">
+               <h2 className="text-xl font-semibold text-gray-900 mb-4">Feedback Statistieken</h2>
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                 <div className="text-center p-4 bg-blue-50 rounded-lg">
+                   <div className="text-2xl font-bold text-blue-600">{feedback.length}</div>
+                   <div className="text-blue-800">Totaal Feedback</div>
+                 </div>
+                 <div className="text-center p-4 bg-green-50 rounded-lg">
+                   <div className="text-2xl font-bold text-green-600">
+                     {feedback.length > 0 ? Math.round(feedback.reduce((sum, item) => sum + item.rating, 0) / feedback.length * 10) / 10 : 0}
+                   </div>
+                   <div className="text-green-800">Gemiddelde Rating</div>
+                 </div>
+                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                   <div className="text-2xl font-bold text-yellow-600">
+                     {feedback.filter(item => item.rating >= 4).length}
+                   </div>
+                   <div className="text-yellow-800">Positieve Reviews (4-5★)</div>
+                 </div>
+                 <div className="text-center p-4 bg-red-50 rounded-lg">
+                   <div className="text-2xl font-bold text-red-600">
+                     {feedback.filter(item => item.rating <= 2).length}
+                   </div>
+                   <div className="text-red-800">Negatieve Reviews (1-2★)</div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         )}
+
+         {activeTab === 'monitoring' && (
           <div className="space-y-6">
             {/* Suspicious Activities */}
             <div className="bg-white rounded-lg shadow-sm p-6">
