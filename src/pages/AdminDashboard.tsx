@@ -72,12 +72,46 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     if (isAdmin) {
+      checkDatabaseStatus();
       loadPlayers();
       loadSuspiciousActivities();
       loadGameSettings();
       loadFeedback();
     }
   }, [isAdmin]);
+
+  const checkDatabaseStatus = async () => {
+    try {
+      console.log('Checking database status...');
+      
+      // Check if players table exists and is accessible
+      const { data: playersData, error: playersError } = await supabase
+        .from('players')
+        .select('count')
+        .limit(1);
+      
+      console.log('Players table check:', { data: playersData, error: playersError });
+      
+      // Check if game_settings table exists and is accessible
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('game_settings')
+        .select('count')
+        .limit(1);
+      
+      console.log('Game settings table check:', { data: settingsData, error: settingsError });
+      
+      // Check if feedback table exists and is accessible
+      const { data: feedbackData, error: feedbackError } = await supabase
+        .from('feedback')
+        .select('count')
+        .limit(1);
+      
+      console.log('Feedback table check:', { data: feedbackData, error: feedbackError });
+      
+    } catch (error) {
+      console.error('Database status check failed:', error);
+    }
+  };
 
   const loadPlayers = async () => {
     try {
@@ -116,11 +150,19 @@ const AdminDashboard: React.FC = () => {
 
   const addPlayer = async () => {
     try {
-      const { error } = await supabase
+      console.log('Adding player:', newPlayer);
+      
+      const { data, error } = await supabase
         .from('players')
-        .insert([newPlayer]);
+        .insert([newPlayer])
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Player added successfully:', data);
 
       // Reset form and reload
       setNewPlayer({ name: '', team: '', position: '', price: 0, goals: 0 });
@@ -128,7 +170,7 @@ const AdminDashboard: React.FC = () => {
       alert('Speler succesvol toegevoegd!');
     } catch (error) {
       console.error('Error adding player:', error);
-      alert('Fout bij toevoegen speler');
+      alert(`Fout bij toevoegen speler: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
 
@@ -136,7 +178,9 @@ const AdminDashboard: React.FC = () => {
     if (!editingPlayer) return;
 
     try {
-      const { error } = await supabase
+      console.log('Updating player:', editingPlayer);
+      
+      const { data, error } = await supabase
         .from('players')
         .update({
           name: editingPlayer.name,
@@ -145,16 +189,22 @@ const AdminDashboard: React.FC = () => {
           price: editingPlayer.price,
           goals: editingPlayer.goals
         })
-        .eq('id', editingPlayer.id);
+        .eq('id', editingPlayer.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Player updated successfully:', data);
 
       setEditingPlayer(null);
       await loadPlayers();
       alert('Speler succesvol bijgewerkt!');
     } catch (error) {
       console.error('Error updating player:', error);
-      alert('Fout bij bijwerken speler');
+      alert(`Fout bij bijwerken speler: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
 
@@ -162,18 +212,26 @@ const AdminDashboard: React.FC = () => {
     if (!confirm('Weet je zeker dat je deze speler wilt verwijderen?')) return;
 
     try {
-      const { error } = await supabase
+      console.log('Deleting player:', playerId);
+      
+      const { data, error } = await supabase
         .from('players')
         .delete()
-        .eq('id', playerId);
+        .eq('id', playerId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Player deleted successfully:', data);
 
       await loadPlayers();
       alert('Speler succesvol verwijderd!');
     } catch (error) {
       console.error('Error deleting player:', error);
-      alert('Fout bij verwijderen speler');
+      alert(`Fout bij verwijderen speler: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
 
@@ -187,12 +245,20 @@ const AdminDashboard: React.FC = () => {
       const player = players.find(p => p.id === selectedPlayer);
       if (!player) throw new Error('Speler niet gevonden');
 
-      const { error } = await supabase
+      console.log('Adding goals:', { player: player.name, goals: goalsToAdd, date: matchDate, type: matchType });
+
+      const { data, error } = await supabase
         .from('players')
         .update({ goals: player.goals + goalsToAdd })
-        .eq('id', selectedPlayer);
+        .eq('id', selectedPlayer)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Goals added successfully:', data);
 
       // Log the goal addition for monitoring
       await logGoalAddition(player.name, goalsToAdd, matchDate, matchType);
@@ -205,7 +271,7 @@ const AdminDashboard: React.FC = () => {
       alert(`${goalsToAdd} doelpunt(en) toegevoegd aan ${player.name}!`);
     } catch (error) {
       console.error('Error adding goals:', error);
-      alert('Fout bij toevoegen doelpunten');
+      alert(`Fout bij toevoegen doelpunten: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
 
@@ -259,17 +325,25 @@ const AdminDashboard: React.FC = () => {
 
   const updateGameSetting = async (key: string, value: string) => {
     try {
-      const { error } = await supabase
+      console.log('Updating game setting:', { key, value });
+      
+      const { data, error } = await supabase
         .from('game_settings')
-        .upsert({ key, value }, { onConflict: 'key' });
+        .upsert({ key, value }, { onConflict: 'key' })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Game setting updated successfully:', data);
 
       await loadGameSettings();
       alert('Instelling succesvol bijgewerkt!');
     } catch (error) {
       console.error('Error updating game setting:', error);
-      alert('Fout bij bijwerken instelling');
+      alert(`Fout bij bijwerken instelling: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
 
