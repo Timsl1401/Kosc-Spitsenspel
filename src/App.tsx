@@ -29,14 +29,14 @@ function App() {
       
               <Route path="/rules" element={<Rules />} />
               <Route path="/feedback" element={<Feedback />} />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
+                      <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
               <Route 
                 path="/players" 
                 element={

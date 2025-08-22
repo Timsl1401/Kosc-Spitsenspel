@@ -202,7 +202,7 @@ const Rules: React.FC = () => {
           href="/dashboard"
           className="bg-white text-green-600 px-8 py-4 rounded-md font-semibold text-lg hover:bg-gray-100 transition-colors inline-block"
         >
-          Ga naar Dashboard
+                        Ga naar Home
         </a>
       </div>
     </div>

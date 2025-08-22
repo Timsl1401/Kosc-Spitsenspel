@@ -46,7 +46,7 @@ const Home: React.FC = () => {
               to="/dashboard"
               className="kosc-button text-lg px-8 py-4"
             >
-              Ga naar Dashboard
+              Ga naar Home
             </Link>
           </div>
         )}

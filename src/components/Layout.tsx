@@ -107,7 +107,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                          to="/dashboard"
                          className={`kosc-nav-item ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
                        >
-                         DASHBOARD
+                         HOME
                        </Link>
                      )}
                      {!user && (
@@ -166,7 +166,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                              className={`kosc-nav-item-mobile ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
                              onClick={() => setIsMobileMenuOpen(false)}
                            >
-                             DASHBOARD
+                             HOME
                            </Link>
                          )}
                          {!user && (
