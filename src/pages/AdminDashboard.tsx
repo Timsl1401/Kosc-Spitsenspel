@@ -416,13 +416,16 @@ const AdminDashboard: React.FC = () => {
                   <option value="Verdediger">Verdediger</option>
                   <option value="Keeper">Keeper</option>
                 </select>
-                <input
-                  type="number"
-                  placeholder="Prijs (€)"
-                  value={newPlayer.price}
-                  onChange={(e) => setNewPlayer({ ...newPlayer, price: parseInt(e.target.value) || 0 })}
-                  className="border border-gray-300 rounded-md px-3 py-2"
-                />
+                                 <input
+                   type="text"
+                   placeholder="Prijs (€)"
+                   value={newPlayer.price === 0 ? '' : newPlayer.price.toString()}
+                   onChange={(e) => {
+                     const value = e.target.value.replace(/[^0-9]/g, '');
+                     setNewPlayer({ ...newPlayer, price: value ? parseInt(value) : 0 });
+                   }}
+                   className="border border-gray-300 rounded-md px-3 py-2"
+                 />
                 <button
                   onClick={addPlayer}
                   disabled={!newPlayer.name || !newPlayer.team || !newPlayer.position || newPlayer.price <= 0}
@@ -502,30 +505,38 @@ const AdminDashboard: React.FC = () => {
                             <div className="text-sm text-gray-900">{player.position}</div>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {editingPlayer?.id === player.id ? (
-                            <input
-                              type="number"
-                              value={editingPlayer.price}
-                              onChange={(e) => setEditingPlayer({ ...editingPlayer, price: parseInt(e.target.value) || 0 })}
-                              className="border border-gray-300 rounded px-2 py-1 w-20"
-                            />
-                          ) : (
-                            <div className="text-sm text-gray-900">€{player.price.toLocaleString()}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {editingPlayer?.id === player.id ? (
-                            <input
-                              type="number"
-                              value={editingPlayer.goals}
-                              onChange={(e) => setEditingPlayer({ ...editingPlayer, goals: parseInt(e.target.value) || 0 })}
-                              className="border border-gray-300 rounded px-2 py-1 w-16"
-                            />
-                          ) : (
-                            <div className="text-sm text-gray-900">{player.goals}</div>
-                          )}
-                        </td>
+                                                   <td className="px-6 py-4 whitespace-nowrap">
+                             {editingPlayer?.id === player.id ? (
+                               <input
+                                 type="text"
+                                 value={editingPlayer.price === 0 ? '' : editingPlayer.price.toString()}
+                                 onChange={(e) => {
+                                   const value = e.target.value.replace(/[^0-9]/g, '');
+                                   setEditingPlayer({ ...editingPlayer, price: value ? parseInt(value) : 0 });
+                                 }}
+                                 className="border border-gray-300 rounded px-2 py-1 w-24"
+                                 placeholder="Prijs"
+                               />
+                             ) : (
+                               <div className="text-sm text-gray-900">€{player.price.toLocaleString()}</div>
+                             )}
+                           </td>
+                                                   <td className="px-6 py-4 whitespace-nowrap">
+                             {editingPlayer?.id === player.id ? (
+                               <input
+                                 type="text"
+                                 value={editingPlayer.goals === 0 ? '' : editingPlayer.goals.toString()}
+                                 onChange={(e) => {
+                                   const value = e.target.value.replace(/[^0-9]/g, '');
+                                   setEditingPlayer({ ...editingPlayer, goals: value ? parseInt(value) : 0 });
+                                 }}
+                                 className="border border-gray-300 rounded px-2 py-1 w-16"
+                                 placeholder="0"
+                               />
+                             ) : (
+                               <div className="text-sm text-gray-900">{player.goals}</div>
+                             )}
+                           </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {editingPlayer?.id === player.id ? (
                             <div className="flex space-x-2">
@@ -586,13 +597,16 @@ const AdminDashboard: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <input
-                  type="number"
-                  placeholder="Aantal doelpunten"
-                  value={goalsToAdd}
-                  onChange={(e) => setGoalsToAdd(parseInt(e.target.value) || 0)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
-                />
+                                 <input
+                   type="text"
+                   placeholder="Aantal doelpunten"
+                   value={goalsToAdd === 0 ? '' : goalsToAdd.toString()}
+                   onChange={(e) => {
+                     const value = e.target.value.replace(/[^0-9]/g, '');
+                     setGoalsToAdd(value ? parseInt(value) : 0);
+                   }}
+                   className="border border-gray-300 rounded-md px-3 py-2"
+                 />
                 <input
                   type="date"
                   value={matchDate}
