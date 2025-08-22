@@ -21,8 +21,8 @@ const Home: React.FC = () => {
           KOSC SPITSENSPEL
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-          Welkom bij het officiële KOSC Spitsenspel! Voorspel wedstrijden, 
-          strijd om de hoogste score en word kampioen van het seizoen.
+          Welkom bij het officiële KOSC Spitsenspel! Koop en verkoop spelers, 
+          verdien punten en strijd om de hoogste score in de ranglijst.
         </p>
         
         {!user ? (
@@ -56,25 +56,25 @@ const Home: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="kosc-card text-center">
           <div className="text-4xl mb-4">⚽</div>
-          <h3 className="text-xl font-semibold mb-3">Wedstrijden Voorspellen</h3>
+          <h3 className="text-xl font-semibold mb-3">Spelers Kopen</h3>
           <p className="text-gray-600">
-            Voorspel de uitslagen van alle KOSC wedstrijden en verdien punten.
+            Koop en verkoop KOSC spelers om je team samen te stellen.
           </p>
         </div>
         
         <div className="kosc-card text-center">
           <div className="text-4xl mb-4">🏆</div>
-          <h3 className="text-xl font-semibold mb-3">Ranglijst</h3>
+          <h3 className="text-xl font-semibold mb-3">Punten Verdienen</h3>
           <p className="text-gray-600">
-            Strijd tegen andere spelers en beklim de ranglijst naar de top.
+            Verdien punten wanneer je spelers doelpunten maken in wedstrijden.
           </p>
         </div>
         
         <div className="kosc-card text-center">
           <div className="text-4xl mb-4">🎯</div>
-          <h3 className="text-xl font-semibold mb-3">Prijzen Winnen</h3>
+          <h3 className="text-xl font-semibold mb-3">Ranglijst</h3>
           <p className="text-gray-600">
-            De beste voorspellers winnen mooie prijzen aan het einde van het seizoen.
+            Strijd tegen andere spelers en beklim de ranglijst naar de top.
           </p>
         </div>
       </div>
@@ -97,9 +97,9 @@ const Home: React.FC = () => {
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
               2
             </div>
-            <h3 className="font-semibold mb-2">Voorspel</h3>
+            <h3 className="font-semibold mb-2">Stel Team Samen</h3>
             <p className="text-gray-600 text-sm">
-              Voorspel wedstrijd uitslagen
+              Koop en verkoop spelers
             </p>
           </div>
           
@@ -109,7 +109,7 @@ const Home: React.FC = () => {
             </div>
             <h3 className="font-semibold mb-2">Verdien Punten</h3>
             <p className="text-gray-600 text-sm">
-              Krijg punten voor juiste voorspellingen
+              Krijg punten voor doelpunten van je spelers
             </p>
           </div>
           
@@ -131,7 +131,7 @@ const Home: React.FC = () => {
           Klaar om te beginnen?
         </h2>
         <p className="text-xl mb-6 opacity-90">
-          Doe mee aan het KOSC Spitsenspel en toon je voetbalkennis!
+          Doe mee aan het KOSC Spitsenspel en toon je team management skills!
         </p>
         {!user && (
           <Link
