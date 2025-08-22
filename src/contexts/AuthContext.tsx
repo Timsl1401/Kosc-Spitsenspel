@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { useSupabase } from './SupabaseContext'
+import { sendVerificationEmail, generateVerificationCode } from '../utils/emailService'
 
 interface AuthContextType {
   user: User | null
@@ -83,8 +84,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, message: error.message }
       }
       
-      if (data.user && !data.user.email_confirmed_at) {
-        return { success: true, message: 'Account created! Please check your email to confirm your account before logging in.' }
+      if (data.user) {
+        // Generate verification code
+        const verificationCode = generateVerificationCode();
+        
+        // Set verification code in database
+        const { error: codeError } = await supabase.rpc('set_verification_code', {
+          user_email: email
+        });
+        
+        if (codeError) {
+          console.error('Error setting verification code:', codeError);
+        }
+        
+        // Send verification email
+        const emailSent = await sendVerificationEmail(email, verificationCode);
+        
+        if (emailSent) {
+          return { success: true, message: 'Account created! Check your email for verification code.' }
+        } else {
+          return { success: false, message: 'Account created but failed to send verification email.' }
+        }
       }
       
       return { success: true, message: 'Account created successfully!' }
@@ -100,8 +120,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyEmail = async (code: string) => {
     try {
-      // Call the verify_code function in Supabase
-      const { data, error } = await supabase.rpc('verify_code', {
+      // Call the verify_user_code function in Supabase
+      const { data, error } = await supabase.rpc('verify_user_code', {
         user_email: user?.email || '',
         input_code: code
       })
@@ -124,18 +144,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resendVerificationCode = async () => {
     try {
-      // Call the create_verification_code function in Supabase
-      const { data, error } = await supabase.rpc('create_verification_code', {
-        user_email: user?.email || ''
-      })
+      // Generate new verification code
+      const verificationCode = generateVerificationCode();
       
-      if (error) {
-        return { success: false, message: error.message }
+      // Set new verification code in database
+      const { error: codeError } = await supabase.rpc('set_verification_code', {
+        user_email: user?.email || ''
+      });
+      
+      if (codeError) {
+        return { success: false, message: codeError.message }
       }
       
-      // In a real implementation, you'd send this code via email
-      // For now, we'll just return success
-      return { success: true, message: 'Verification code resent!' }
+      // Send new verification email
+      const emailSent = await sendVerificationEmail(user?.email || '', verificationCode);
+      
+      if (emailSent) {
+        return { success: true, message: 'Verification code resent!' }
+      } else {
+        return { success: false, message: 'Failed to send verification email' }
+      }
     } catch (error: any) {
       return { success: false, message: error.message || 'An error occurred while resending the code' }
     }
