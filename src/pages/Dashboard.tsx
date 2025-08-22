@@ -10,7 +10,6 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(100000);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [transfersRemaining, setTransfersRemaining] = useState(3);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
   const [transferDeadline, setTransferDeadline] = useState<string>('');
   const [leaderboard, setLeaderboard] = useState<Array<{
@@ -36,6 +35,12 @@ const Dashboard: React.FC = () => {
       const currentDate = new Date();
       setIsDeadlinePassed(currentDate > deadlineDate);
     }
+  };
+
+  const getGoalsAfterPurchase = (_playerId: string, _purchaseDate: string): number => {
+    // For now, return 0 - this will be implemented with real goal tracking
+    // In the future, this should query the goals table for goals scored after purchaseDate
+    return 0;
   };
 
   const loadLeaderboard = async () => {
@@ -100,19 +105,22 @@ const Dashboard: React.FC = () => {
         return sum + (player?.price || 0);
       }, 0) || 0;
 
-              // setTeamValue(currentTeamValue); // TODO: Implement team value tracking
       setBudget(100000 - currentTeamValue);
 
-      // Calculate total points
+      // Calculate total points - ONLY for goals scored AFTER purchase
       const points = teamData?.reduce((sum, item) => {
         const player = playersData?.find(p => p.id === item.player_id);
-        if (player) {
-          return sum + (player.goals * getTeamPoints(player.team));
+        if (player && item.bought_at) {
+          // Get goals scored after purchase date
+          const goalsAfterPurchase = getGoalsAfterPurchase(player.id, item.bought_at);
+          return sum + (goalsAfterPurchase * getTeamPoints(player.team));
         }
         return sum;
       }, 0) || 0;
 
       setTotalPoints(points);
+
+      // Note: transfers are now limited to max 3 players in team
 
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -148,9 +156,9 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // Check transfers remaining
-    if (transfersRemaining <= 0) {
-      alert('Je hebt geen transfers meer over!');
+    // Check transfers remaining (max 3 players in team)
+    if (userTeam.length >= 3) {
+      alert('Je hebt al 3 spelers gekocht! Je kunt geen nieuwe spelers meer kopen.');
       return;
     }
 
@@ -178,12 +186,9 @@ const Dashboard: React.FC = () => {
 
       console.log('Player bought successfully:', data);
 
-      // Update transfers remaining
-      setTransfersRemaining(prev => prev - 1);
-
-      // Reload data
+      // Reload data (transfers remaining will be recalculated)
       await loadUserData();
-      alert(`${player.name} is toegevoegd aan je team! Transfers over: ${transfersRemaining - 1}`);
+      alert(`${player.name} is toegevoegd aan je team!`);
 
     } catch (error: any) {
       console.error('Error buying player:', error);
@@ -324,8 +329,8 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-center mb-3">
             <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-purple-500" />
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-800">{transfersRemaining}</h3>
-          <p className="text-sm md:text-base text-gray-600">Transfers Over</p>
+          <h3 className="text-lg md:text-2xl font-bold text-gray-800">{userTeam.length}/3</h3>
+          <p className="text-sm md:text-base text-gray-600">Spelers Gekocht</p>
         </div>
       </div>
 
