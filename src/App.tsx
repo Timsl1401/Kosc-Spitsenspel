@@ -1,9 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { SupabaseProvider } from './contexts/SupabaseContext'
 import { AuthProvider } from './contexts/AuthContext'
+import { AdminProvider } from './contexts/AdminContext'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
+import AdminDashboard from './pages/AdminDashboard'
 import Players from './pages/Players'
 import Matches from './pages/Matches'
 import Rankings from './pages/Rankings'
@@ -19,51 +21,61 @@ function App() {
   return (
     <SupabaseProvider>
       <AuthProvider>
-        <Router>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-      
-              <Route path="/rules" element={<Rules />} />
-              <Route path="/feedback" element={<Feedback />} />
-                      <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-              <Route 
-                path="/players" 
-                element={
-                  <ProtectedRoute>
-                    <Players />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/matches" 
-                element={
-                  <ProtectedRoute>
-                    <Matches />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/rankings" 
-                element={
-                  <ProtectedRoute>
-                    <Rankings />
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
-          </Layout>
-        </Router>
+        <AdminProvider>
+          <Router>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+        
+                <Route path="/rules" element={<Rules />} />
+                <Route path="/feedback" element={<Feedback />} />
+                        <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/players" 
+                  element={
+                    <ProtectedRoute>
+                      <Players />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/matches" 
+                  element={
+                    <ProtectedRoute>
+                      <Matches />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/rankings" 
+                  element={
+                    <ProtectedRoute>
+                      <Rankings />
+                    </ProtectedRoute>
+                  } 
+                />
+              </Routes>
+            </Layout>
+          </Router>
+        </AdminProvider>
       </AuthProvider>
     </SupabaseProvider>
   )
