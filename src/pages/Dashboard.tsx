@@ -12,6 +12,7 @@ const Dashboard: React.FC = () => {
   const [totalPoints, setTotalPoints] = useState(0);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
   const [transferDeadline, setTransferDeadline] = useState<string>('');
+  const [transfersAfterDeadline, setTransfersAfterDeadline] = useState(3);
   const [leaderboard, setLeaderboard] = useState<Array<{
     user_id: string;
     total_points: number;
@@ -34,7 +35,21 @@ const Dashboard: React.FC = () => {
       setTransferDeadline(deadlineData.value);
       const deadlineDate = new Date(deadlineData.value);
       const currentDate = new Date();
-      setIsDeadlinePassed(currentDate > deadlineDate);
+      const isDeadlinePassed = currentDate > deadlineDate;
+      setIsDeadlinePassed(isDeadlinePassed);
+      
+      // If deadline has passed, calculate remaining transfers
+      if (isDeadlinePassed) {
+        // Count players bought after deadline
+        const { data: postDeadlinePlayers } = await supabase
+          .from('user_teams')
+          .select('bought_at')
+          .eq('user_id', user?.id)
+          .gte('bought_at', deadlineData.value);
+        
+        const postDeadlineCount = postDeadlinePlayers?.length || 0;
+        setTransfersAfterDeadline(Math.max(0, 3 - postDeadlineCount));
+      }
     }
   };
 
@@ -236,6 +251,12 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    // Check transfers after deadline (max 3)
+    if (isDeadlinePassed && transfersAfterDeadline <= 0) {
+      alert('Je hebt geen transfers meer over na de deadline! Je kunt geen nieuwe spelers meer kopen.');
+      return;
+    }
+
     if (!user?.id) {
       alert('Je bent niet ingelogd!');
       return;
@@ -260,7 +281,12 @@ const Dashboard: React.FC = () => {
 
       console.log('Player bought successfully:', data);
 
-      // Reload data (transfers remaining will be recalculated)
+      // Update transfers after deadline if applicable
+      if (isDeadlinePassed) {
+        setTransfersAfterDeadline(prev => Math.max(0, prev - 1));
+      }
+
+      // Reload data
       await loadUserData();
       alert(`${player.name} is toegevoegd aan je team!`);
 
@@ -326,7 +352,7 @@ const Dashboard: React.FC = () => {
             <strong className="font-bold">Transfer Deadline Verstreken!</strong>
             <span className="block sm:inline"> 
               De deadline van {transferDeadline ? new Date(transferDeadline).toLocaleDateString('nl-NL') : 'onbekend'} is verstreken. 
-              Je kunt geen nieuwe spelers meer kopen. Je team is definitief!
+              Je kunt nog maximaal {transfersAfterDeadline} nieuwe spelers kopen (van de 3 toegestane transfers na deadline).
             </span>
           </div>
         </div>
@@ -339,7 +365,7 @@ const Dashboard: React.FC = () => {
             <strong className="font-bold">Transfer Deadline Info</strong>
             <span className="block sm:inline"> 
               Je kunt spelers kopen tot {new Date(transferDeadline).toLocaleDateString('nl-NL')}. 
-              Daarna is je team definitief!
+              Daarna kun je nog maximaal 3 nieuwe spelers kopen om je team te verbeteren.
             </span>
           </div>
         </div>
@@ -403,8 +429,12 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-center mb-3">
             <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-purple-500" />
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-800">{userTeam.length}/15</h3>
-          <p className="text-sm md:text-base text-gray-600">Spelers in Team</p>
+          <h3 className="text-lg md:text-2xl font-bold text-gray-800">
+            {isDeadlinePassed ? transfersAfterDeadline : '∞'}
+          </h3>
+          <p className="text-sm md:text-base text-gray-600">
+            {isDeadlinePassed ? 'Transfers Over' : 'Transfers Mogelijk'}
+          </p>
         </div>
       </div>
 
