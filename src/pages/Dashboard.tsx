@@ -10,12 +10,19 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(100000);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [transfersRemaining, setTransfersRemaining] = useState(3);
+  const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
 
 
   useEffect(() => {
     if (user) {
       loadUserData();
     }
+    
+    // Check if transfer deadline has passed
+    const deadlineDate = new Date('2025-02-01');
+    const currentDate = new Date();
+    setIsDeadlinePassed(currentDate > deadlineDate);
   }, [user]);
 
   const loadUserData = async () => {
@@ -72,18 +79,33 @@ const Dashboard: React.FC = () => {
   const buyPlayer = async (player: Player) => {
     console.log('Buying player:', player.name, 'User ID:', user?.id);
     
+    // Check transfer deadline
+    if (isDeadlinePassed) {
+      alert('De transfer deadline is verstreken! Je kunt geen nieuwe spelers meer kopen.');
+      return;
+    }
+
+    // Check weekend restriction
     if (!isTransferAllowed()) {
       alert('Transfers zijn niet toegestaan in het weekend!');
       return;
     }
 
+    // Check budget
     if (budget < player.price) {
       alert(`Je hebt niet genoeg budget om deze speler te kopen! Budget: €${budget}, Prijs: €${player.price}`);
       return;
     }
 
+    // Check team size
     if (userTeam.length >= 15) {
       alert('Je team is al vol (maximaal 15 spelers)!');
+      return;
+    }
+
+    // Check transfers remaining
+    if (transfersRemaining <= 0) {
+      alert('Je hebt geen transfers meer over!');
       return;
     }
 
@@ -111,9 +133,12 @@ const Dashboard: React.FC = () => {
 
       console.log('Player bought successfully:', data);
 
+      // Update transfers remaining
+      setTransfersRemaining(prev => prev - 1);
+
       // Reload data
       await loadUserData();
-      alert(`${player.name} is toegevoegd aan je team!`);
+      alert(`${player.name} is toegevoegd aan je team! Transfers over: ${transfersRemaining - 1}`);
 
     } catch (error: any) {
       console.error('Error buying player:', error);
@@ -122,8 +147,18 @@ const Dashboard: React.FC = () => {
   };
 
   const sellPlayer = async (userTeamItem: UserTeam) => {
+    // Check weekend restriction
     if (!isTransferAllowed()) {
       alert('Transfers zijn niet toegestaan in het weekend!');
+      return;
+    }
+
+    // Check if player was bought before deadline
+    const playerBoughtDate = new Date(userTeamItem.bought_at);
+    const deadlineDate = new Date('2025-02-01'); // Transfer deadline
+    
+    if (playerBoughtDate < deadlineDate) {
+      alert('Je kunt deze speler niet verkopen omdat hij voor de deadline is gekocht!');
       return;
     }
 
@@ -158,6 +193,16 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Transfer Deadline Warning */}
+      {isDeadlinePassed && (
+        <div className="col-span-2 md:col-span-4 mb-6">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+            <strong className="font-bold">Transfer Deadline Verstreken!</strong>
+            <span className="block sm:inline"> Je kunt geen nieuwe spelers meer kopen. Je team is definitief!</span>
+          </div>
+        </div>
+      )}
+
       {/* Header Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <div className="kosc-card text-center">
@@ -188,7 +233,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-center mb-3">
             <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-purple-500" />
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-800">3</h3>
+          <h3 className="text-lg md:text-2xl font-bold text-gray-800">{transfersRemaining}</h3>
           <p className="text-sm md:text-base text-gray-600">Transfers Over</p>
         </div>
       </div>
