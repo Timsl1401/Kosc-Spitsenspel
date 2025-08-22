@@ -57,8 +57,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, message: error.message }
       }
       
-      if (data.user && !data.user.email_confirmed_at) {
-        return { success: false, message: 'Please check your email and confirm your account before logging in.' }
+      // Check if user is verified using our custom system
+      if (data.user) {
+        const { data: userData, error: userError } = await supabase
+          .from('verification_codes')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .eq('used', true)
+          .single();
+        
+        if (userError || !userData) {
+          return { success: false, message: 'Je account is nog niet geverifieerd. Controleer je email voor de verificatiecode.' }
+        }
       }
       
       return { success: true, message: 'Successfully logged in!' }
@@ -76,7 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             first_name: firstName,
             last_name: lastName,
-          }
+          },
+          emailRedirectTo: undefined, // Disable Supabase email
+          emailConfirm: false // Disable Supabase email confirmation
         }
       })
       

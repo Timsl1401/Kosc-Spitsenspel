@@ -1,5 +1,5 @@
 // Email service utility for sending verification codes
-// This can be integrated with your existing email service (Brevo/Sendinblue)
+// Integrated with Brevo/Sendinblue API
 
 export interface EmailConfig {
   to: string;
@@ -7,13 +7,26 @@ export interface EmailConfig {
   html: string;
 }
 
-// Function to send verification email with code
+// Brevo/Sendinblue API configuration
+const BREVO_API_KEY = process.env.VITE_BREVO_API_KEY || 'your-brevo-api-key';
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+
+// Function to send verification email with code via Brevo
 export const sendVerificationEmail = async (email: string, code: string): Promise<boolean> => {
   try {
-    const emailConfig: EmailConfig = {
-      to: email,
+    const emailConfig = {
+      sender: {
+        name: 'KOSC Spitsenspel',
+        email: 'noreply@kosc-spitsenspel.nl'
+      },
+      to: [
+        {
+          email: email,
+          name: email.split('@')[0]
+        }
+      ],
       subject: 'KOSC Spitsenspel - Verificeer je account',
-      html: `
+      htmlContent: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #059669; padding: 20px; text-align: center;">
             <h1 style="color: white; margin: 0;">KOSC Spitsenspel</h1>
@@ -46,13 +59,24 @@ export const sendVerificationEmail = async (email: string, code: string): Promis
       `
     };
 
-    // TODO: Integrate with your email service (Brevo/Sendinblue)
-    // For now, we'll just log the email configuration
-    console.log('Email would be sent with config:', emailConfig);
-    
-    // Simulate email sending
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    // Send email via Brevo API
+    const response = await fetch(BREVO_API_URL, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': BREVO_API_KEY
+      },
+      body: JSON.stringify(emailConfig)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Brevo API error:', errorData);
+      return false;
+    }
+
+    console.log('Verification email sent successfully to:', email);
     return true;
   } catch (error) {
     console.error('Error sending verification email:', error);
