@@ -77,25 +77,67 @@ const Dashboard: React.FC = () => {
 
   const loadLeaderboard = async () => {
     try {
-      // Get top 10 users by points
-      const { data: leaderboardData, error } = await supabase
-        .rpc('calculate_user_points')
-        .select('*')
-        .order('total_points', { ascending: false })
-        .limit(10);
+      // Get all users with their teams
+      const { data: userTeamsData, error: userTeamsError } = await supabase
+        .from('user_teams')
+        .select(`
+          user_id,
+          bought_at,
+          sold_at,
+          players (
+            id,
+            name,
+            team,
+            goals,
+            price
+          )
+        `)
+        .is('sold_at', null);
 
-      if (error) throw error;
+      if (userTeamsError) throw userTeamsError;
 
-      // Add rank and format data
-      const formattedLeaderboard = leaderboardData?.map((item, index) => ({
-        ...item,
-        rank: index + 1,
-        user_email: item.user_email || 'Onbekend'
-      })) || [];
+      // Group by user and calculate points
+      const userPoints: { [key: string]: { points: number; teamValue: number; email: string } } = {};
+      
+      userTeamsData?.forEach(userTeam => {
+        if (userTeam.players) {
+          const player = userTeam.players as any;
+          const userId = userTeam.user_id;
+          
+          if (!userPoints[userId]) {
+            userPoints[userId] = { points: 0, teamValue: 0, email: '' };
+          }
+          
+          // Calculate points (only for goals after purchase)
+          const goalsAfterPurchase = getGoalsAfterPurchase(player.id, userTeam.bought_at);
+          userPoints[userId].points += goalsAfterPurchase * getTeamPoints(player.team);
+          
+          // Add team value
+          userPoints[userId].teamValue += player.price;
+        }
+      });
 
-      setLeaderboard(formattedLeaderboard);
+      // Convert to array and sort by points
+      const leaderboardArray = Object.entries(userPoints)
+        .map(([userId, data]) => ({
+          user_id: userId,
+          total_points: data.points,
+          team_value: data.teamValue,
+          user_email: data.email || `User ${userId.slice(0, 8)}`,
+          rank: 0
+        }))
+        .sort((a, b) => b.total_points - a.total_points)
+        .slice(0, 10)
+        .map((item, index) => ({
+          ...item,
+          rank: index + 1
+        }));
+
+      setLeaderboard(leaderboardArray);
     } catch (error) {
       console.error('Error loading leaderboard:', error);
+      // Set empty leaderboard on error
+      setLeaderboard([]);
     }
   };
 
@@ -188,9 +230,9 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // Check transfers remaining (max 3 players in team)
-    if (userTeam.length >= 3) {
-      alert('Je hebt al 3 spelers gekocht! Je kunt geen nieuwe spelers meer kopen.');
+    // Check team size (max 15 players)
+    if (userTeam.length >= 15) {
+      alert('Je team is al vol (maximaal 15 spelers)!');
       return;
     }
 
@@ -361,8 +403,8 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-center mb-3">
             <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-purple-500" />
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-800">{userTeam.length}/3</h3>
-          <p className="text-sm md:text-base text-gray-600">Spelers Gekocht</p>
+          <h3 className="text-lg md:text-2xl font-bold text-gray-800">{userTeam.length}/15</h3>
+          <p className="text-sm md:text-base text-gray-600">Spelers in Team</p>
         </div>
       </div>
 
@@ -435,73 +477,136 @@ const Dashboard: React.FC = () => {
           )}
         </div>
       ) : (
-        /* Leaderboard */
-        <div className="kosc-section">
-          <h2 className="kosc-title text-2xl mb-6">Top 10 Ranglijst</h2>
-          
+        /* Leaderboard - Full Page Tab */
+        <div className="space-y-6">
+          {/* Leaderboard Header */}
+          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+            <div className="text-center">
+              <Trophy className="h-16 w-16 mx-auto mb-4 text-yellow-300" />
+              <h2 className="text-3xl font-bold mb-2">Top 10 Ranglijst</h2>
+              <p className="text-green-100">De beste spelers van het KOSC Spitsenspel</p>
+            </div>
+          </div>
+
+          {/* Leaderboard Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+              <div className="text-2xl font-bold text-green-600">{leaderboard.length}</div>
+              <div className="text-gray-600">Deelnemers</div>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {leaderboard.length > 0 ? leaderboard[0]?.total_points || 0 : 0}
+              </div>
+              <div className="text-gray-600">Hoogste Score</div>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {leaderboard.length > 0 ? Math.round(leaderboard.reduce((sum, entry) => sum + entry.total_points, 0) / leaderboard.length) : 0}
+              </div>
+              <div className="text-gray-600">Gemiddelde Score</div>
+            </div>
+          </div>
+
+          {/* Leaderboard Table */}
           {leaderboard.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen ranglijst</h3>
               <p className="text-gray-600">De ranglijst wordt geladen...</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Positie
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Speler
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Punten
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Team Waarde
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {leaderboard.map((entry, index) => (
-                    <tr key={entry.user_id} className={index < 3 ? 'bg-yellow-50' : ''}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {index < 3 ? (
-                            <span className="text-2xl mr-2">
-                              {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                            </span>
-                          ) : null}
-                          <span className={`text-sm font-medium ${
-                            index < 3 ? 'text-yellow-600' : 'text-gray-900'
-                          }`}>
-                            #{entry.rank}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {entry.user_email.split('@')[0]}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-bold text-green-600">
-                          {entry.total_points}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-600">
-                          €{entry.team_value.toLocaleString()}
-                        </span>
-                      </td>
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Positie
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Speler
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Punten
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Team Waarde
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {leaderboard.map((entry, index) => (
+                      <tr key={entry.user_id} className={`hover:bg-gray-50 transition-colors ${
+                        index < 3 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100' : ''
+                      }`}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            {index < 3 ? (
+                              <span className="text-3xl mr-3">
+                                {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                              </span>
+                            ) : null}
+                            <span className={`text-lg font-bold ${
+                              index < 3 ? 'text-yellow-600' : 'text-gray-900'
+                            }`}>
+                              #{entry.rank}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                              <span className="text-green-600 font-semibold">
+                                {entry.user_email.split('@')[0].charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {entry.user_email.split('@')[0]}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {entry.user_email}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-xl font-bold text-green-600">
+                            {entry.total_points}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-600">
+                            €{entry.team_value.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            index < 3 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : index < 10 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {index < 3 ? '🏆 Top 3' : index < 10 ? '✅ Top 10' : '📊 Deelnemer'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
+
+          {/* Leaderboard Footer */}
+          <div className="bg-gray-50 p-4 rounded-lg text-center text-sm text-gray-600">
+            <p>De ranglijst wordt bijgewerkt op basis van doelpunten en team prestaties</p>
+          </div>
         </div>
       )}
 
@@ -571,13 +676,13 @@ const Dashboard: React.FC = () => {
                             <span className="text-sm text-gray-600">
                               {player.goals} doelpunt{player.goals !== 1 ? 'en' : ''}
                             </span>
-                            <button
-                              onClick={() => buyPlayer(player)}
-                              disabled={!isTransferAllowed() || budget < player.price || userTeam.length >= 3}
-                              className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Koop
-                            </button>
+                                                         <button
+                               onClick={() => buyPlayer(player)}
+                               disabled={!isTransferAllowed() || budget < player.price || userTeam.length >= 15}
+                               className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                             >
+                               Koop
+                             </button>
                           </div>
                         </div>
                       ))}
