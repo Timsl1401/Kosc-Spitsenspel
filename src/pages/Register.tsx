@@ -69,7 +69,7 @@ export default function Register() {
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-kosc-green-100">
             <img 
-              src="/kosc-logo.svg" 
+              src="/kosc-logo.png" 
               alt="KOSC" 
               className="h-8 w-auto"
             />

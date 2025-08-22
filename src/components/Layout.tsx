@@ -49,7 +49,7 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
                 <img 
-                  src="/kosc-logo.svg" 
+                  src="/kosc-logo.png" 
                   alt="KOSC" 
                   className="h-8 w-auto"
                 />
