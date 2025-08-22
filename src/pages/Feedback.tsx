@@ -21,16 +21,16 @@ const Feedback: React.FC = () => {
     setSubmitStatus('idle');
 
     try {
-      // Send feedback via Supabase Edge Function
-      const { error } = await supabase.functions.invoke('send-feedback', {
-        body: {
+      // Save feedback to database
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
           name: formData.name,
           email: formData.email,
           subject: formData.subject,
           message: formData.message,
           rating: formData.rating
-        }
-      });
+        });
 
       if (error) throw error;
       
