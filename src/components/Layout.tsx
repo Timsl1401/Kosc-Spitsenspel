@@ -38,21 +38,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Main Header with Logo */}
       <div className="kosc-header">
         <div className="container mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-3">
-                <img
-                  src="/kosc-logo.png"
-                  alt="KOSC"
-                  className="h-8 w-auto"
-                />
-              </div>
-              <div className="text-white">
-                <h1 className="text-2xl font-bold">KOSC</h1>
-                <p className="text-sm text-gray-300">1933 Ootmarsum</p>
+                      <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-3 p-1">
+                  <img
+                    src="/kosc-logo.png"
+                    alt="KOSC"
+                    className="h-10 w-10 object-contain"
+                  />
+                </div>
+                <div className="text-white">
+                  <h1 className="text-2xl font-bold">KOSC</h1>
+                  <p className="text-sm text-gray-300">1933 Ootmarsum</p>
+                </div>
               </div>
             </div>
-          </div>
           
           {user && (
             <div className="flex items-center space-x-4">
