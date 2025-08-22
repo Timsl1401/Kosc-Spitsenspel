@@ -110,14 +110,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                          HOME
                        </Link>
                      )}
-                     {user && user.email === 'spitsenspelkosc@gmail.com' && (
+                     {user && user.email === 'timsl.tsl@gmail.com' && (
                        <Link
                          to="/admin"
                          className={`kosc-nav-item ${location.pathname === '/admin' ? 'bg-green-500 text-black' : ''}`}
                        >
                          ADMIN
                        </Link>
-                     )}
+                       )}
                      {!user && (
                        <Link
                          to="/login"
@@ -177,7 +177,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                              HOME
                            </Link>
                          )}
-                         {user && user.email === 'spitsenspelkosc@gmail.com' && (
+                         {user && user.email === 'timsl.tsl@gmail.com' && (
                            <Link
                              to="/admin"
                              className={`kosc-nav-item-mobile ${location.pathname === '/admin' ? 'bg-green-500 text-black' : ''}`}
