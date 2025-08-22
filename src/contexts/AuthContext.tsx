@@ -100,20 +100,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyEmail = async (code: string) => {
     try {
-      // For now, we'll simulate email verification
-      // In a real implementation, you'd verify the code against what was sent
-      const { data, error } = await supabase.auth.updateUser({
-        data: { email_verified: true }
+      // Call the verify_code function in Supabase
+      const { data, error } = await supabase.rpc('verify_code', {
+        user_email: user?.email || '',
+        input_code: code
       })
       
       if (error) {
         return { success: false, message: error.message }
       }
       
-      // Update local state
-      setIsEmailConfirmed(true)
-      
-      return { success: true, message: 'Email successfully verified!' }
+      if (data) {
+        // Update local state
+        setIsEmailConfirmed(true)
+        return { success: true, message: 'Email successfully verified!' }
+      } else {
+        return { success: false, message: 'Ongeldige of verlopen verificatiecode' }
+      }
     } catch (error: any) {
       return { success: false, message: error.message || 'An error occurred during email verification' }
     }
@@ -121,8 +124,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resendVerificationCode = async () => {
     try {
-      // For now, we'll simulate resending
-      // In a real implementation, you'd generate and send a new code
+      // Call the create_verification_code function in Supabase
+      const { data, error } = await supabase.rpc('create_verification_code', {
+        user_email: user?.email || ''
+      })
+      
+      if (error) {
+        return { success: false, message: error.message }
+      }
+      
+      // In a real implementation, you'd send this code via email
+      // For now, we'll just return success
       return { success: true, message: 'Verification code resent!' }
     } catch (error: any) {
       return { success: false, message: error.message || 'An error occurred while resending the code' }
