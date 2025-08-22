@@ -13,6 +13,14 @@ const Dashboard: React.FC = () => {
   const [transfersRemaining, setTransfersRemaining] = useState(3);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
   const [transferDeadline, setTransferDeadline] = useState<string>('');
+  const [leaderboard, setLeaderboard] = useState<Array<{
+    user_id: string;
+    total_points: number;
+    team_value: number;
+    user_email: string;
+    rank: number;
+  }>>([]);
+  const [activeTab, setActiveTab] = useState<'team' | 'leaderboard'>('team');
 
 
   const loadTransferDeadline = async () => {
@@ -30,10 +38,35 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const loadLeaderboard = async () => {
+    try {
+      // Get top 10 users by points
+      const { data: leaderboardData, error } = await supabase
+        .rpc('calculate_user_points')
+        .select('*')
+        .order('total_points', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      // Add rank and format data
+      const formattedLeaderboard = leaderboardData?.map((item, index) => ({
+        ...item,
+        rank: index + 1,
+        user_email: item.user_email || 'Onbekend'
+      })) || [];
+
+      setLeaderboard(formattedLeaderboard);
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadUserData();
       loadTransferDeadline();
+      loadLeaderboard();
     }
   }, [user]);
 
@@ -233,6 +266,34 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
+      {/* Tab Navigation */}
+      <div className="col-span-2 md:col-span-4 mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('team')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'team'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Mijn Team
+            </button>
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'leaderboard'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Top 10 Ranglijst
+            </button>
+          </nav>
+        </div>
+      </div>
+
       {/* Header Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <div className="kosc-card text-center">
@@ -283,57 +344,129 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Current Team */}
-      <div className="kosc-section">
-        <h2 className="kosc-title text-2xl mb-6">Mijn Team</h2>
-        
-        {userTeam.length === 0 ? (
-          <div className="text-center py-12">
-            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen spelers</h3>
-            <p className="text-gray-600">Koop je eerste spelers om te beginnen!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {userTeam.map((item) => {
-              const player = availablePlayers.find(p => p.id === item.player_id);
-              if (!player) return null;
+      {/* Content based on active tab */}
+      {activeTab === 'team' ? (
+        /* Current Team */
+        <div className="kosc-section">
+          <h2 className="kosc-title text-2xl mb-6">Mijn Team</h2>
+          
+          {userTeam.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen spelers</h3>
+              <p className="text-gray-600">Koop je eerste spelers om te beginnen!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {userTeam.map((item) => {
+                const player = availablePlayers.find(p => p.id === item.player_id);
+                if (!player) return null;
 
-              return (
-                <div key={item.id} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{player.name}</h4>
-                      <p className="text-sm text-gray-600">{player.position}</p>
+                return (
+                  <div key={item.id} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{player.name}</h4>
+                        <p className="text-sm text-gray-600">{player.position}</p>
+                      </div>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        {getTeamPoints(player.team)} pt
+                      </span>
                     </div>
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                      {getTeamPoints(player.team)} pt
-                    </span>
+                    
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm text-gray-600">{player.team}</span>
+                      <span className="text-sm font-medium text-gray-900">€{player.price.toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        {player.goals} doelpunt{player.goals !== 1 ? 'en' : ''}
+                      </span>
+                      <button
+                        onClick={() => sellPlayer(item)}
+                        disabled={!isTransferAllowed()}
+                        className="text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Verkoop
+                      </button>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm text-gray-600">{player.team}</span>
-                    <span className="text-sm font-medium text-gray-900">€{player.price.toLocaleString()}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">
-                      {player.goals} doelpunt{player.goals !== 1 ? 'en' : ''}
-                    </span>
-                    <button
-                      onClick={() => sellPlayer(item)}
-                      disabled={!isTransferAllowed()}
-                      className="text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Verkoop
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Leaderboard */
+        <div className="kosc-section">
+          <h2 className="kosc-title text-2xl mb-6">Top 10 Ranglijst</h2>
+          
+          {leaderboard.length === 0 ? (
+            <div className="text-center py-12">
+              <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen ranglijst</h3>
+              <p className="text-gray-600">De ranglijst wordt geladen...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Positie
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Speler
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Punten
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Team Waarde
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {leaderboard.map((entry, index) => (
+                    <tr key={entry.user_id} className={index < 3 ? 'bg-yellow-50' : ''}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {index < 3 ? (
+                            <span className="text-2xl mr-2">
+                              {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                            </span>
+                          ) : null}
+                          <span className={`text-sm font-medium ${
+                            index < 3 ? 'text-yellow-600' : 'text-gray-900'
+                          }`}>
+                            #{entry.rank}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {entry.user_email.split('@')[0]}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-bold text-green-600">
+                          {entry.total_points}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-600">
+                          €{entry.team_value.toLocaleString()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Available Players */}
       <div className="kosc-section">
