@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import AuthStatus from './AuthStatus';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, signOut } = useAuth();
@@ -233,10 +232,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  </div>
                </footer>
 
-      {/* Debug Info */}
-      <div className="fixed bottom-4 right-4">
-        <AuthStatus />
-      </div>
+      
     </div>
   );
 };
