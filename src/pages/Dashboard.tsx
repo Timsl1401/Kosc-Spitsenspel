@@ -70,13 +70,15 @@ const Dashboard: React.FC = () => {
   };
 
   const buyPlayer = async (player: Player) => {
+    console.log('Buying player:', player.name, 'User ID:', user?.id);
+    
     if (!isTransferAllowed()) {
       alert('Transfers zijn niet toegestaan in het weekend!');
       return;
     }
 
     if (budget < player.price) {
-      alert('Je hebt niet genoeg budget om deze speler te kopen!');
+      alert(`Je hebt niet genoeg budget om deze speler te kopen! Budget: €${budget}, Prijs: €${player.price}`);
       return;
     }
 
@@ -85,25 +87,37 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    if (!user?.id) {
+      alert('Je bent niet ingelogd!');
+      return;
+    }
+
     try {
-      const { error } = await supabase
+      console.log('Inserting player into user_teams...');
+      const { data, error } = await supabase
         .from('user_teams')
         .insert({
-          user_id: user?.id,
+          user_id: user.id,
           player_id: player.id,
           bought_at: new Date().toISOString(),
           points_earned: 0
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Player bought successfully:', data);
 
       // Reload data
       await loadUserData();
       alert(`${player.name} is toegevoegd aan je team!`);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error buying player:', error);
-      alert('Er is een fout opgetreden bij het kopen van de speler.');
+      alert(`Er is een fout opgetreden bij het kopen van de speler: ${error.message || 'Onbekende fout'}`);
     }
   };
 

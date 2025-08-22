@@ -17,23 +17,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Utility Bar */}
-      <div className="kosc-header">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex space-x-6">
-            <Link to="/webshop" className="text-white hover:text-green-400 transition-colors">
-              WEBSHOP
-            </Link>
-            <Link to="/contact" className="text-white hover:text-green-400 transition-colors">
-              CONTACT
-            </Link>
-          </div>
-          <div className="text-white">
-            <span className="text-sm">HOOFDSPONSOR: </span>
-            <span className="text-green-400 font-semibold">energreen.pro</span>
-          </div>
-        </div>
-      </div>
+                     {/* Top Utility Bar */}
+               <div className="kosc-header">
+                 <div className="container mx-auto px-4 flex justify-between items-center">
+                   <div className="flex space-x-6">
+                     <Link to="/feedback" className="text-white hover:text-green-400 transition-colors">
+                       FEEDBACK
+                     </Link>
+                   </div>
+                 </div>
+               </div>
 
       {/* Main Header with Logo */}
       <div className="kosc-header">
@@ -139,20 +132,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 Voorspel wedstrijden en strijd om de hoogste score!
               </p>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Snelle Links</h3>
-              <ul className="space-y-2">
-                <li><Link to="/" className="text-gray-300 hover:text-green-400">Home</Link></li>
-                <li><Link to="/matches" className="text-gray-300 hover:text-green-400">Wedstrijden</Link></li>
-                <li><Link to="/rules" className="text-gray-300 hover:text-green-400">Regels</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Contact</h3>
-              <p className="text-gray-300">
-                <a href="https://www.kosc.nl" className="hover:text-green-400">www.kosc.nl</a>
-              </p>
-            </div>
+                                 <div>
+                       <h3 className="text-lg font-semibold mb-4">Snelle Links</h3>
+                       <ul className="space-y-2">
+                         <li><Link to="/" className="text-gray-300 hover:text-green-400">Home</Link></li>
+                         <li><Link to="/matches" className="text-gray-300 hover:text-green-400">Wedstrijden</Link></li>
+                         <li><Link to="/rules" className="text-gray-300 hover:text-green-400">Regels</Link></li>
+                         <li><Link to="/feedback" className="text-gray-300 hover:text-green-400">Feedback</Link></li>
+                       </ul>
+                     </div>
+                     <div>
+                       <h3 className="text-lg font-semibold mb-4">Meer Info</h3>
+                       <p className="text-gray-300">
+                         <a href="https://www.kosc.nl" className="hover:text-green-400">www.kosc.nl</a>
+                       </p>
+                     </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-8 text-center">
             <p className="text-gray-400">
