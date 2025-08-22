@@ -48,11 +48,13 @@ export default function Layout({ children }: LayoutProps) {
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <img 
-                  src="/kosc-logo.png" 
-                  alt="KOSC" 
-                  className="h-8 w-auto"
-                />
+                                  <div className="bg-black p-2 rounded">
+                    <img 
+                      src="/kosc-logo.png" 
+                      alt="KOSC" 
+                      className="h-8 w-auto"
+                    />
+                  </div>
                 <span className="ml-2 text-xl font-bold text-gray-900">
                   Spitsenspel
                 </span>
