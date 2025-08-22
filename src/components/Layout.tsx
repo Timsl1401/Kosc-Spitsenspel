@@ -1,173 +1,173 @@
-import { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
-import { 
-  Home, 
-  Users, 
-  Calendar, 
-  Trophy, 
-  BookOpen, 
-  LogOut,
-  Menu,
-  X
-} from 'lucide-react'
-import { useState } from 'react'
-import AuthStatus from './AuthStatus'
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import AuthStatus from './AuthStatus';
 
-interface LayoutProps {
-  children: ReactNode
-}
-
-export default function Layout({ children }: LayoutProps) {
-  const { user, signOut } = useAuth()
-  const location = useLocation()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Spelers', href: '/players', icon: Users },
-    { name: 'Wedstrijden', href: '/matches', icon: Calendar },
-    { name: 'Ranglijst', href: '/rankings', icon: Trophy },
-    { name: 'Spelregels', href: '/rules', icon: BookOpen },
-  ]
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, signOut } = useAuth();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     try {
-      await signOut()
+      await signOut();
     } catch (error) {
-      console.error('Error signing out:', error)
+      console.error('Error signing out:', error);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                                  <div className="bg-black p-2 rounded">
-                    <img 
-                      src="/kosc-logo.png" 
-                      alt="KOSC" 
-                      className="h-8 w-auto"
-                    />
-                  </div>
-                <span className="ml-2 text-xl font-bold text-gray-900">
-                  Spitsenspel
-                </span>
-              </Link>
-            </div>
-
-            {/* Desktop Navigation */}
-            {user && (
-              <nav className="hidden md:flex space-x-8">
-                {navigation.map((item) => {
-                  const isActive = location.pathname === item.href
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors ${
-                        isActive
-                          ? 'border-kosc-green-500 text-gray-900'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {item.name}
-                    </Link>
-                  )
-                })}
-              </nav>
-            )}
-
-            {/* User menu */}
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <>
-                  <span className="text-sm text-gray-700">
-                    Welkom, {user.user_metadata?.first_name || 'Gebruiker'}!
-                  </span>
-                  <button
-                    onClick={handleSignOut}
-                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kosc-green-500"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Uitloggen
-                  </button>
-                  <AuthStatus />
-                </>
-              ) : (
-                <div className="flex items-center space-x-4">
-                  <Link
-                    to="/login"
-                    className="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
-                  >
-                    Inloggen
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="btn-primary"
-                  >
-                    Registreren
-                  </Link>
-                  <AuthStatus />
-                </div>
-              )}
-
-              {/* Mobile menu button */}
-              {user && (
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-kosc-green-500"
-                >
-                  {mobileMenuOpen ? (
-                    <X className="h-6 w-6" />
-                  ) : (
-                    <Menu className="h-6 w-6" />
-                  )}
-                </button>
-              )}
-            </div>
+      {/* Top Utility Bar */}
+      <div className="kosc-header">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <div className="flex space-x-6">
+            <Link to="/webshop" className="text-white hover:text-green-400 transition-colors">
+              WEBSHOP
+            </Link>
+            <Link to="/contact" className="text-white hover:text-green-400 transition-colors">
+              CONTACT
+            </Link>
+          </div>
+          <div className="text-white">
+            <span className="text-sm">HOOFDSPONSOR: </span>
+            <span className="text-green-400 font-semibold">energreen.pro</span>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && user && (
-          <div className="md:hidden">
-            <div className="pt-2 pb-3 space-y-1">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`block pl-3 pr-4 py-2 text-base font-medium border-l-4 ${
-                      isActive
-                        ? 'bg-kosc-green-50 border-kosc-green-500 text-kosc-green-700'
-                        : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <div className="flex items-center">
-                      <item.icon className="mr-3 h-5 w-5" />
-                      {item.name}
-                    </div>
-                  </Link>
-                )
-              })}
+      {/* Main Header with Logo */}
+      <div className="kosc-header">
+        <div className="container mx-auto px-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-3">
+                <img
+                  src="/kosc-logo.png"
+                  alt="KOSC"
+                  className="h-8 w-auto"
+                />
+              </div>
+              <div className="text-white">
+                <h1 className="text-2xl font-bold">KOSC</h1>
+                <p className="text-sm text-gray-300">1933 Ootmarsum</p>
+              </div>
             </div>
           </div>
-        )}
-      </header>
+          
+          {user && (
+            <div className="flex items-center space-x-4">
+              <span className="text-white">Welkom, {user.user_metadata?.first_name || user.email}</span>
+              <button
+                onClick={handleSignOut}
+                className="kosc-button"
+              >
+                Uitloggen
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      {/* Main Navigation */}
+      <nav className="kosc-nav">
+        <div className="container mx-auto px-4">
+          <div className="flex space-x-1">
+            <Link
+              to="/"
+              className={`kosc-nav-item ${location.pathname === '/' ? 'bg-green-500 text-black' : ''}`}
+            >
+              HOME
+            </Link>
+            <Link
+              to="/matches"
+              className={`kosc-nav-item ${location.pathname === '/matches' ? 'bg-green-500 text-black' : ''}`}
+            >
+              WEDSTRIJDEN
+            </Link>
+            <Link
+              to="/teams"
+              className={`kosc-nav-item ${location.pathname === '/teams' ? 'bg-green-500 text-black' : ''}`}
+            >
+              TEAMS
+            </Link>
+            <Link
+              to="/rules"
+              className={`kosc-nav-item ${location.pathname === '/rules' ? 'bg-green-500 text-black' : ''}`}
+            >
+              REGELS
+            </Link>
+            {user && (
+              <Link
+                to="/dashboard"
+                className={`kosc-nav-item ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
+              >
+                DASHBOARD
+              </Link>
+            )}
+            {!user && (
+              <Link
+                to="/login"
+                className={`kosc-nav-item ${location.pathname === '/login' ? 'bg-green-500 text-black' : ''}`}
+              >
+                INLOGGEN
+              </Link>
+            )}
+            {!user && (
+              <Link
+                to="/register"
+                className={`kosc-nav-item ${location.pathname === '/register' ? 'bg-green-500 text-black' : ''}`}
+              >
+                REGISTREREN
+              </Link>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
         {children}
       </main>
+
+      {/* Footer */}
+      <footer className="kosc-footer">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">KOSC Spitsenspel</h3>
+              <p className="text-gray-300">
+                Voorspel wedstrijden en strijd om de hoogste score!
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Snelle Links</h3>
+              <ul className="space-y-2">
+                <li><Link to="/" className="text-gray-300 hover:text-green-400">Home</Link></li>
+                <li><Link to="/matches" className="text-gray-300 hover:text-green-400">Wedstrijden</Link></li>
+                <li><Link to="/rules" className="text-gray-300 hover:text-green-400">Regels</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Contact</h3>
+              <p className="text-gray-300">
+                <a href="https://www.kosc.nl" className="hover:text-green-400">www.kosc.nl</a>
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-gray-700 mt-8 pt-8 text-center">
+            <p className="text-gray-400">
+              © 2025 KOSC Spitsenspel. Alle rechten voorbehouden.
+            </p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Debug Info */}
+      <div className="fixed bottom-4 right-4">
+        <AuthStatus />
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default Layout;

@@ -2,22 +2,157 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-gray-50 text-gray-900;
-  }
+:root {
+  --kosc-dark: #1a1a1a;
+  --kosc-green: #32CD32;
+  --kosc-white: #ffffff;
+  --kosc-text: #333333;
+  --kosc-light-gray: #f5f5f5;
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-kosc-green-600 hover:bg-kosc-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors;
-  }
-  
-  .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
-  }
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--kosc-light-gray);
+  color: var(--kosc-text);
+}
+
+/* KOSC Header Styling */
+.kosc-header {
+  background-color: var(--kosc-dark);
+  color: var(--kosc-white);
+  padding: 1rem 0;
+}
+
+.kosc-nav {
+  background-color: var(--kosc-dark);
+  border-bottom: 2px solid var(--kosc-green);
+}
+
+.kosc-nav-item {
+  color: var(--kosc-white);
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 1rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.kosc-nav-item:hover {
+  background-color: var(--kosc-green);
+  color: var(--kosc-dark);
+}
+
+.kosc-button {
+  background-color: var(--kosc-green);
+  color: var(--kosc-dark);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.kosc-button:hover {
+  background-color: #28a745;
+  transform: translateY(-2px);
+}
+
+.kosc-card {
+  background-color: var(--kosc-white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.kosc-title {
+  color: var(--kosc-dark);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  border-bottom: 3px solid var(--kosc-green);
+  padding-bottom: 0.5rem;
+}
+
+.kosc-section {
+  background-color: var(--kosc-white);
+  padding: 2rem;
+  margin: 1rem 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.kosc-footer {
+  background-color: var(--kosc-dark);
+  color: var(--kosc-white);
+  padding: 2rem 0;
+  text-align: center;
+}
+
+/* Form styling */
+.kosc-input {
+  border: 2px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.75rem;
+  width: 100%;
+  transition: border-color 0.3s ease;
+}
+
+.kosc-input:focus {
+  outline: none;
+  border-color: var(--kosc-green);
+  box-shadow: 0 0 0 3px rgba(50, 205, 50, 0.1);
+}
+
+/* Table styling */
+.kosc-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--kosc-white);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.kosc-table th {
+  background-color: var(--kosc-dark);
+  color: var(--kosc-white);
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.kosc-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.kosc-table tr:hover {
+  background-color: var(--kosc-light-gray);
+}
+
+/* Status indicators */
+.kosc-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.kosc-status-success {
+  background-color: var(--kosc-green);
+  color: var(--kosc-dark);
+}
+
+.kosc-status-warning {
+  background-color: #ffc107;
+  color: var(--kosc-dark);
+}
+
+.kosc-status-error {
+  background-color: #dc3545;
+  color: var(--kosc-white);
 }

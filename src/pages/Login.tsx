@@ -1,58 +1,61 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Mail, Lock, User } from 'lucide-react';
 
-export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  
-  const { signIn } = useAuth()
-  const navigate = useNavigate()
+const Login: React.FC = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      const result = await signIn(email, password)
+      const result = await signIn(formData.email, formData.password);
       if (result.success) {
-        navigate('/dashboard')
+        navigate('/dashboard');
       } else {
-        setError(result.message)
+        setError(result.message);
       }
     } catch (error: any) {
-      setError(error.message || 'Er is een fout opgetreden bij het inloggen')
+      setError(error.message || 'Er is een fout opgetreden bij het inloggen');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-                      <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-black">
-              <img 
-                src="/kosc-logo.png" 
-                alt="KOSC" 
-                className="h-8 w-auto"
-              />
-            </div>
+          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-green-500 mb-4">
+            <User className="h-8 w-8 text-white" />
+          </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Log in op je account
+            Inloggen bij KOSC Spitsenspel
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Of{' '}
             <Link
               to="/register"
-              className="font-medium text-kosc-green-600 hover:text-kosc-green-500"
+              className="font-medium text-green-600 hover:text-green-500"
             >
-              registreer je voor het KOSC Spitsenspel
+              registreer een nieuw account
             </Link>
           </p>
         </div>
@@ -79,9 +82,9 @@ export default function Login() {
                   type="email"
                   autoComplete="email"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-kosc-green-500 focus:border-kosc-green-500 focus:z-10 sm:text-sm"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="kosc-input pl-10"
                   placeholder="jouw@email.nl"
                 />
               </div>
@@ -98,25 +101,14 @@ export default function Login() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   autoComplete="current-password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none relative block w-full pl-10 pr-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-kosc-green-500 focus:border-kosc-green-500 focus:z-10 sm:text-sm"
-                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="kosc-input pl-10"
+                  placeholder="Wachtwoord"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
               </div>
             </div>
           </div>
@@ -125,22 +117,24 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-kosc-green-600 hover:bg-kosc-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kosc-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="kosc-button w-full py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Bezig met inloggen...' : 'Inloggen'}
+              {loading ? 'Inloggen...' : 'Inloggen'}
             </button>
           </div>
 
           <div className="text-center">
             <Link
-              to="/"
-              className="font-medium text-kosc-green-600 hover:text-kosc-green-500"
+              to="/forgot-password"
+              className="text-sm text-green-600 hover:text-green-500"
             >
-              Terug naar home
+              Wachtwoord vergeten?
             </Link>
           </div>
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default Login;
