@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Player, UserTeam, getTeamPoints, isTransferAllowed } from '../lib/supabase';
-import { Users, Trophy, Euro, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
+import { Users, Trophy, Euro, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -10,8 +10,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(100000);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [teamValue, setTeamValue] = useState(0);
-  const [transfersRemaining, setTransfersRemaining] = useState(3);
+
 
   useEffect(() => {
     if (user) {
@@ -49,7 +48,7 @@ const Dashboard: React.FC = () => {
         return sum + (player?.price || 0);
       }, 0) || 0;
 
-      setTeamValue(currentTeamValue);
+              // setTeamValue(currentTeamValue); // TODO: Implement team value tracking
       setBudget(100000 - currentTeamValue);
 
       // Calculate total points
@@ -175,7 +174,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-center mb-3">
             <TrendingUp className="h-8 w-8 text-purple-500" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-800">{transfersRemaining}</h3>
+                          <h3 className="text-2xl font-bold text-gray-800">3</h3>
           <p className="text-gray-600">Transfers Over</p>
         </div>
       </div>
