@@ -12,10 +12,14 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Feedback function called')
+    
     const { name, email, subject, message, rating } = await req.json()
+    console.log('Received data:', { name, email, subject, message, rating })
 
     // Validate required fields
     if (!name || !email || !subject || !message) {
+      console.error('Missing required fields')
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { 
@@ -25,13 +29,22 @@ serve(async (req) => {
       )
     }
 
+    // Check if BREVO_API_KEY is set
+    const brevoApiKey = Deno.env.get('BREVO_API_KEY')
+    if (!brevoApiKey) {
+      console.error('BREVO_API_KEY not set')
+      throw new Error('BREVO_API_KEY environment variable is not set')
+    }
+
+    console.log('Sending email via Brevo API...')
+    
     // Send email via Brevo API
     const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'api-key': Deno.env.get('BREVO_API_KEY') || '',
+        'api-key': brevoApiKey,
       },
       body: JSON.stringify({
         sender: {
@@ -97,12 +110,16 @@ serve(async (req) => {
       })
     })
 
+    console.log('Brevo API response status:', brevoResponse.status)
+
     if (!brevoResponse.ok) {
       const errorData = await brevoResponse.text()
       console.error('Brevo API error:', errorData)
-      throw new Error(`Failed to send email: ${brevoResponse.status}`)
+      throw new Error(`Failed to send email: ${brevoResponse.status} - ${errorData}`)
     }
 
+    console.log('Email sent successfully')
+    
     return new Response(
       JSON.stringify({ success: true, message: 'Feedback sent successfully' }),
       { 
@@ -114,7 +131,11 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in send-feedback function:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ 
+        error: 'Internal server error', 
+        details: error.message,
+        timestamp: new Date().toISOString()
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
