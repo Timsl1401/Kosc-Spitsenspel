@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -19,26 +18,3 @@ export default {
   },
   plugins: [],
 }
-=======
-const defaultTheme = require('tailwindcss/defaultTheme');
-
-module.exports = {
-    mode: 'jit',
-    purge: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './vendor/laravel/jetstream/**/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php',
-    ],
-
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Nunito', ...defaultTheme.fontFamily.sans],
-            },
-        },
-    },
-
-    plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
-};
->>>>>>> 4cb9831aca19fa2a9b2a0a2268c7297903f20b91
