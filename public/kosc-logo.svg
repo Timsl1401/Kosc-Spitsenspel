@@ -1,18 +1,32 @@
-<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle -->
-  <circle cx="60" cy="60" r="55" fill="#059669" stroke="#047857" stroke-width="2"/>
+<svg width="200" height="120" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="120" fill="black"/>
   
-  <!-- Football pattern -->
-  <circle cx="60" cy="60" r="35" fill="none" stroke="white" stroke-width="2"/>
-  <circle cx="60" cy="60" r="25" fill="none" stroke="white" stroke-width="1.5"/>
-  <circle cx="60" cy="60" r="15" fill="none" stroke="white" stroke-width="1"/>
+  <!-- K letter -->
+  <text x="30" y="45" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white">K</text>
   
-  <!-- KOSC text -->
-  <text x="60" y="75" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="white">KOSC</text>
+  <!-- Stylized onion/garlic bulb with football (replaces O) -->
+  <g transform="translate(70, 25)">
+    <!-- Bulb shape -->
+    <path d="M15,0 Q25,0 30,10 Q35,25 30,40 Q25,50 15,50 Q5,50 0,40 Q-5,25 0,10 Q5,0 15,0" 
+          fill="white" stroke="black" stroke-width="1"/>
+    
+    <!-- Football panels -->
+    <path d="M15,10 Q20,10 22,20 Q20,30 15,30 Q10,30 8,20 Q10,10 15,10" 
+          fill="none" stroke="black" stroke-width="1"/>
+    
+    <!-- Top sprouts/veins -->
+    <path d="M15,0 Q20,-5 25,-3 Q30,-1 28,5" fill="none" stroke="white" stroke-width="2"/>
+    <path d="M15,0 Q10,-5 5,-3 Q0,-1 2,5" fill="none" stroke="white" stroke-width="2"/>
+    <path d="M15,0 Q18,-8 15,-10 Q12,-8 15,0" fill="none" stroke="white" stroke-width="2"/>
+  </g>
   
-  <!-- Small football details -->
-  <circle cx="45" cy="45" r="3" fill="white"/>
-  <circle cx="75" cy="45" r="3" fill="white"/>
-  <circle cx="45" cy="75" r="3" fill="white"/>
-  <circle cx="75" cy="75" r="3" fill="white"/>
+  <!-- SC letters -->
+  <text x="110" y="45" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white">SC</text>
+  
+  <!-- Year 1933 -->
+  <text x="30" y="70" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" stroke="black" stroke-width="0.5">1933</text>
+  
+  <!-- Location Ootmarsum -->
+  <text x="110" y="70" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" stroke="black" stroke-width="0.5">Ootmarsum</text>
 </svg>
