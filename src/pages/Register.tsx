@@ -48,11 +48,8 @@ export default function Register() {
     try {
       const result = await signUp(formData.email, formData.password, formData.firstName, formData.lastName)
       if (result.success) {
-        if (result.message.includes('check your email')) {
-          setError('Account aangemaakt! Controleer je e-mail om je account te bevestigen voordat je inlogt.')
-        } else {
-          navigate('/dashboard')
-        }
+        // Redirect to email verification page
+        navigate(`/verify-email?email=${formData.email}`)
       } else {
         setError(result.message)
       }

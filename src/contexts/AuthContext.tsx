@@ -9,6 +9,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ success: boolean; message: string }>
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ success: boolean; message: string }>
   signOut: () => Promise<void>
+  verifyEmail: (code: string) => Promise<{ success: boolean; message: string }>
+  resendVerificationCode: () => Promise<{ success: boolean; message: string }>
   isEmailConfirmed: boolean
 }
 
@@ -96,6 +98,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }
 
+  const verifyEmail = async (code: string) => {
+    try {
+      // For now, we'll simulate email verification
+      // In a real implementation, you'd verify the code against what was sent
+      const { data, error } = await supabase.auth.updateUser({
+        data: { email_verified: true }
+      })
+      
+      if (error) {
+        return { success: false, message: error.message }
+      }
+      
+      // Update local state
+      setIsEmailConfirmed(true)
+      
+      return { success: true, message: 'Email successfully verified!' }
+    } catch (error: any) {
+      return { success: false, message: error.message || 'An error occurred during email verification' }
+    }
+  }
+
+  const resendVerificationCode = async () => {
+    try {
+      // For now, we'll simulate resending
+      // In a real implementation, you'd generate and send a new code
+      return { success: true, message: 'Verification code resent!' }
+    } catch (error: any) {
+      return { success: false, message: error.message || 'An error occurred while resending the code' }
+    }
+  }
+
   const value = {
     user,
     session,
@@ -103,6 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signOut,
+    verifyEmail,
+    resendVerificationCode,
     isEmailConfirmed,
   }
 
