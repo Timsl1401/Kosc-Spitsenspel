@@ -12,17 +12,29 @@ const Dashboard: React.FC = () => {
   const [totalPoints, setTotalPoints] = useState(0);
   const [transfersRemaining, setTransfersRemaining] = useState(3);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
+  const [transferDeadline, setTransferDeadline] = useState<string>('');
 
+
+  const loadTransferDeadline = async () => {
+    const { data: deadlineData } = await supabase
+      .from('game_settings')
+      .select('value')
+      .eq('key', 'start_deadline')
+      .single();
+    
+    if (deadlineData) {
+      setTransferDeadline(deadlineData.value);
+      const deadlineDate = new Date(deadlineData.value);
+      const currentDate = new Date();
+      setIsDeadlinePassed(currentDate > deadlineDate);
+    }
+  };
 
   useEffect(() => {
     if (user) {
       loadUserData();
+      loadTransferDeadline();
     }
-    
-    // Check if transfer deadline has passed
-    const deadlineDate = new Date('2025-02-01');
-    const currentDate = new Date();
-    setIsDeadlinePassed(currentDate > deadlineDate);
   }, [user]);
 
   const loadUserData = async () => {
@@ -154,12 +166,14 @@ const Dashboard: React.FC = () => {
     }
 
     // Check if player was bought before deadline
-    const playerBoughtDate = new Date(userTeamItem.bought_at);
-    const deadlineDate = new Date('2025-02-01'); // Transfer deadline
-    
-    if (playerBoughtDate < deadlineDate) {
-      alert('Je kunt deze speler niet verkopen omdat hij voor de deadline is gekocht!');
-      return;
+    if (transferDeadline) {
+      const playerBoughtDate = new Date(userTeamItem.bought_at);
+      const deadlineDate = new Date(transferDeadline);
+      
+      if (playerBoughtDate < deadlineDate) {
+        alert('Je kunt deze speler niet verkopen omdat hij voor de deadline is gekocht!');
+        return;
+      }
     }
 
     try {
@@ -198,7 +212,23 @@ const Dashboard: React.FC = () => {
         <div className="col-span-2 md:col-span-4 mb-6">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
             <strong className="font-bold">Transfer Deadline Verstreken!</strong>
-            <span className="block sm:inline"> Je kunt geen nieuwe spelers meer kopen. Je team is definitief!</span>
+            <span className="block sm:inline"> 
+              De deadline van {transferDeadline ? new Date(transferDeadline).toLocaleDateString('nl-NL') : 'onbekend'} is verstreken. 
+              Je kunt geen nieuwe spelers meer kopen. Je team is definitief!
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {/* Transfer Deadline Info */}
+      {!isDeadlinePassed && transferDeadline && (
+        <div className="col-span-2 md:col-span-4 mb-6">
+          <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative">
+            <strong className="font-bold">Transfer Deadline Info</strong>
+            <span className="block sm:inline"> 
+              Je kunt spelers kopen tot {new Date(transferDeadline).toLocaleDateString('nl-NL')}. 
+              Daarna is je team definitief!
+            </span>
           </div>
         </div>
       )}
