@@ -22,7 +22,7 @@ const Feedback: React.FC = () => {
 
     try {
       // Send feedback via Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('send-feedback', {
+      const { error } = await supabase.functions.invoke('send-feedback', {
         body: {
           name: formData.name,
           email: formData.email,
