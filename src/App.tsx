@@ -10,7 +10,7 @@ import Rankings from './pages/Rankings'
 import Rules from './pages/Rules'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import EmailVerification from './pages/EmailVerification'
+
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/verify-email" element={<EmailVerification />} />
+      
               <Route path="/rules" element={<Rules />} />
               <Route 
                 path="/dashboard" 

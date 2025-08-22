@@ -16,6 +16,7 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   
   const { signUp } = useAuth()
   const navigate = useNavigate()
@@ -48,8 +49,10 @@ export default function Register() {
     try {
       const result = await signUp(formData.email, formData.password, formData.firstName, formData.lastName)
       if (result.success) {
-        // Redirect to email verification page
-        navigate(`/verify-email?email=${formData.email}`)
+        setSuccess(result.message)
+        setTimeout(() => {
+          navigate('/login')
+        }, 3000)
       } else {
         setError(result.message)
       }
@@ -89,6 +92,12 @@ export default function Register() {
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700">{error}</div>
+            </div>
+          )}
+          
+          {success && (
+            <div className="rounded-md bg-green-50 p-4">
+              <div className="text-sm text-green-700">{success}</div>
             </div>
           )}
           
