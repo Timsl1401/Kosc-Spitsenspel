@@ -20,7 +20,7 @@ const Home: React.FC = () => {
         {/* Achtergrond afbeelding */}
         <div className="absolute inset-0">
           <img
-            src="/kosc-field.svg"
+            src="/FotoKosc Zwart Wit.jpg"
             alt="KOSC Voetbalwedstrijd"
             className="w-full h-full object-cover"
           />
@@ -34,7 +34,7 @@ const Home: React.FC = () => {
             {/* Logo */}
             <div className="mb-6 flex justify-center">
               <img
-                src="/kosc-logo.png"
+                src="/SpitsenspelLogo.png"
                 alt="KOSC Spitsenspel Logo"
                 className="h-24 md:h-32 object-contain"
               />
