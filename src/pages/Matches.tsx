@@ -55,32 +55,7 @@ export default function Matches() {
         </div>
       </div>
 
-      {/* Matches list */}
-      <div className="bg-white shadow rounded-lg p-8 text-center">
-        <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Wedstrijden worden geladen</h3>
-        <p className="text-gray-500 mb-4">
-          Voor de meest actuele wedstrijden en uitslagen, gebruik de knoppen hierboven om naar de officiële KOSC website te gaan.
-        </p>
-        <div className="flex justify-center space-x-4">
-          <a
-            href="https://www.kosc.nl/wedstrijdprogramma"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            Wedstrijdprogramma
-          </a>
-          <a
-            href="https://www.kosc.nl/uitslagen"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            Uitslagen
-          </a>
-        </div>
-      </div>
+
 
 
     </div>
