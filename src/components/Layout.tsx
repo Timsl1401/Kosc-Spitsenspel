@@ -97,14 +97,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      </Link>
                      <Link
                        to="/rules"
-                       className={`kosc-nav-item ${location.pathname === '/rules' ? 'bg-green-500 text-black' : ''}`}
+                       className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/rules' ? 'bg-green-500 text-black' : ''}`}
                      >
                        REGELS
                      </Link>
                      {user && (
                        <Link
                          to="/dashboard"
-                         className={`kosc-nav-item ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
+                         className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
                        >
                          DASHBOARD
                        </Link>
@@ -112,7 +112,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      {user && user.email === 'timsl.tsl@gmail.com' && (
                        <Link
                          to="/admin"
-                         className={`kosc-nav-item ${location.pathname === '/admin' ? 'bg-green-500 text-black' : ''}`}
+                         className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/admin' ? 'bg-green-500 text-black' : ''}`}
                        >
                          ADMIN
                        </Link>
