@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Player, UserTeam, getTeamPoints, isTransferAllowed } from '../lib/supabase';
 import { Users, Trophy, Euro, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [userTeam, setUserTeam] = useState<UserTeam[]>([]);
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,10 +22,6 @@ const Dashboard: React.FC = () => {
   }>>([]);
   const [activeTab, setActiveTab] = useState<'team' | 'leaderboard'>('team');
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
-  const [hasShownRules, setHasShownRules] = useState(() => {
-    // Check localStorage om te zien of we al naar rules zijn geweest
-    return localStorage.getItem(`hasShownRules_${user?.id}`) === 'true';
-  });
 
 
   const loadTransferDeadline = async () => {
@@ -178,39 +172,18 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      // Controleer of gebruiker voor het eerst inlogt (geen team heeft)
-      checkFirstTimeUser();
+      // checkFirstTimeUser() is uitgeschakeld om problemen te voorkomen
       loadUserData();
       loadTransferDeadline();
       loadLeaderboard();
     }
   }, [user]);
 
+  // Controleer of gebruiker voor het eerst inlogt (uitgeschakeld)
   const checkFirstTimeUser = async () => {
-    try {
-      // Alleen controleren als we de regels nog niet hebben getoond
-      if (hasShownRules) return;
-      
-      const { data: existingTeam, error } = await supabase
-        .from('user_teams')
-        .select('id')
-        .eq('user_id', user?.id)
-        .limit(1);
-      
-      if (error) {
-        console.error('Fout bij controleren eerste keer gebruiker:', error);
-        return;
-      }
-      
-      // Als gebruiker geen team heeft, stuur naar spelregels
-      if (!existingTeam || existingTeam.length === 0) {
-        setHasShownRules(true);
-        localStorage.setItem(`hasShownRules_${user?.id}`, 'true');
-        navigate('/rules');
-      }
-    } catch (error) {
-      console.error('Fout bij controleren eerste keer gebruiker:', error);
-    }
+    // Deze functie is uitgeschakeld om problemen te voorkomen
+    // Gebruikers worden niet meer automatisch naar regels gestuurd
+    return;
   };
 
   const loadUserData = async () => {
