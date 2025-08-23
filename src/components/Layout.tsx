@@ -102,12 +102,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      >
                        WEDSTRIJDEN
                      </Link>
-                     <Link
-                       to="/teams"
-                       className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/teams' ? 'bg-green-500 text-black' : ''}`}
-                     >
-                       TEAMS
-                     </Link>
+
                      <Link
                        to="/rules"
                        className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/rules' ? 'bg-green-500 text-black' : ''}`}
@@ -168,12 +163,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                          >
                            WEDSTRIJDEN
                          </Link>
-                         <Link
-                           to="/teams"
-                           className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/teams' ? 'bg-green-500 text-black' : ''}`}
-                         >
-                           TEAMS
-                         </Link>
+
                          <Link
                            to="/rules"
                            className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/rules' ? 'bg-green-500 text-black' : ''}`}
