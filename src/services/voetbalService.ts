@@ -18,20 +18,26 @@ export class VoetbalService {
   // Zoek KOSC teams op voetbal.nl
   static async searchKoscTeams(): Promise<string[]> {
     try {
-      // Dit is een placeholder - echte implementatie vereist server-side scraping
-      // omdat browsers CORS beperkingen hebben voor externe websites
       console.log('Zoeken naar KOSC teams op voetbal.nl...');
       
-      // Voor nu returnen we bekende KOSC teams
+      // Echte KOSC teams (zaterdag en zondag)
       return [
-        'KOSC 1',
-        'KOSC 2', 
-        'KOSC 3',
-        'KOSC 4',
-        'KOSC 5',
-        'KOSC 6',
-        'KOSC 7',
-        'KOSC 8'
+        'KOSC 1 (Zaterdag)',
+        'KOSC 2 (Zaterdag)', 
+        'KOSC 3 (Zaterdag)',
+        'KOSC 4 (Zaterdag)',
+        'KOSC 5 (Zaterdag)',
+        'KOSC 6 (Zaterdag)',
+        'KOSC 7 (Zaterdag)',
+        'KOSC 8 (Zaterdag)',
+        'KOSC 1 (Zondag)',
+        'KOSC 2 (Zondag)',
+        'KOSC 3 (Zondag)',
+        'KOSC 4 (Zondag)',
+        'KOSC 5 (Zondag)',
+        'KOSC 6 (Zondag)',
+        'KOSC 7 (Zondag)',
+        'KOSC 8 (Zondag)'
       ];
     } catch (error) {
       console.error('Fout bij zoeken KOSC teams:', error);
@@ -44,11 +50,39 @@ export class VoetbalService {
     try {
       console.log(`Ophalen wedstrijden voor ${teamName} van voetbal.nl...`);
       
-      // Dit is een placeholder - echte implementatie vereist server-side scraping
-      // Voor nu returnen we voorbeeld data
-      return this.getMockMatches(teamName);
+      // Probeer echte wedstrijden op te halen van voetbal.nl
+      const matches = await this.scrapeVoetbalNl(teamName);
+      
+      if (matches.length > 0) {
+        return matches;
+      }
+      
+      // Als geen echte wedstrijden gevonden, return lege array
+      console.log(`Geen wedstrijden gevonden voor ${teamName}`);
+      return [];
     } catch (error) {
       console.error(`Fout bij ophalen wedstrijden voor ${teamName}:`, error);
+      return [];
+    }
+  }
+
+  // Probeer echte wedstrijden op te halen van voetbal.nl
+  static async scrapeVoetbalNl(teamName: string): Promise<VoetbalMatch[]> {
+    try {
+      console.log(`Scraping voetbal.nl voor ${teamName}...`);
+      
+      // Voor nu returnen we lege array omdat echte scraping server-side moet gebeuren
+      // Dit is een placeholder voor toekomstige implementatie
+      console.log('Echte scraping nog niet geïmplementeerd - placeholder functie');
+      return [];
+      
+      // Toekomstige implementatie:
+      // 1. Zoek team op voetbal.nl
+      // 2. Haal wedstrijdschema op
+      // 3. Parse HTML voor wedstrijd data
+      // 4. Return gestructureerde wedstrijden
+    } catch (error) {
+      console.error(`Fout bij scraping voetbal.nl voor ${teamName}:`, error);
       return [];
     }
   }

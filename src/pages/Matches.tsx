@@ -25,10 +25,10 @@ export default function Matches() {
     scheduleMatchUpdates(supabase)
   }, [supabase])
 
-  // Effect om mock data toe te voegen als er geen wedstrijden zijn
+  // Effect om echte wedstrijden op te halen als er geen wedstrijden zijn
   useEffect(() => {
     if (matches.length === 0 && !loading) {
-      // Voeg mock data toe als er geen wedstrijden zijn
+      // Probeer echte wedstrijden op te halen van voetbal.nl
       updateMatchesFromVoetbal()
     }
   }, [matches.length, loading])
@@ -57,13 +57,19 @@ export default function Matches() {
       // Haal wedstrijden op van voetbal.nl
       const voetbalMatches = await VoetbalService.getAllKoscMatches()
       
-      // Update database
-      await VoetbalService.updateMatchesInDatabase(supabase, voetbalMatches)
-      
-      // Herlaad wedstrijden uit database
-      await fetchMatches()
-      
-      console.log('Wedstrijden succesvol bijgewerkt van voetbal.nl')
+      if (voetbalMatches.length > 0) {
+        // Update database
+        await VoetbalService.updateMatchesInDatabase(supabase, voetbalMatches)
+        
+        // Herlaad wedstrijden uit database
+        await fetchMatches()
+        
+        console.log('Wedstrijden succesvol bijgewerkt van voetbal.nl')
+      } else {
+        console.log('Geen wedstrijden gevonden op voetbal.nl')
+        // Toon bericht dat er geen wedstrijden zijn
+        setMatches([])
+      }
     } catch (error) {
       console.error('Fout bij bijwerken wedstrijden van voetbal.nl:', error)
     } finally {
@@ -118,28 +124,44 @@ export default function Matches() {
 
       {/* Matches list */}
       <div className="space-y-4">
-        {matches.map((match) => (
-          <div key={match.id} className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-gray-400" />
-                <span className="text-sm text-gray-500">
-                  {formatDate(match.match_date)}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                {match.is_competitive && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-kosc-green-100 text-kosc-green-800">
-                    Competitie
+        {matches.length === 0 ? (
+          <div className="bg-white shadow rounded-lg p-8 text-center">
+            <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Geen wedstrijden gevonden</h3>
+            <p className="text-gray-500 mb-4">
+              Er zijn momenteel geen wedstrijden gepland voor de KOSC teams.
+            </p>
+            <button
+              onClick={updateMatchesFromVoetbal}
+              disabled={loading}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              {loading ? 'Zoeken...' : 'Zoek opnieuw'}
+            </button>
+          </div>
+        ) : (
+          matches.map((match) => (
+            <div key={match.id} className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-500">
+                    {formatDate(match.match_date)}
                   </span>
-                )}
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                  {match.is_competitive ? 'Punten tellen' : 'Vriendschappelijk'}
-                </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {match.is_competitive && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-kosc-green-100 text-kosc-green-800">
+                      Competitie
+                    </span>
+                  )}
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    {match.is_competitive ? 'Punten tellen' : 'Vriendschappelijk'}
+                  </span>
+                </div>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4 items-center">
+              
+              <div className="grid grid-cols-3 gap-4 items-center">
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Home className="h-5 w-5 text-gray-400 mr-2" />
@@ -179,15 +201,7 @@ export default function Matches() {
         ))}
       </div>
 
-      {matches.length === 0 && (
-        <div className="text-center py-12">
-          <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Geen wedstrijden gevonden</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Er zijn momenteel geen wedstrijden gepland.
-          </p>
-        </div>
-      )}
+
     </div>
   )
 }
