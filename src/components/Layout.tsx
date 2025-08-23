@@ -29,13 +29,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      </div>
 
                      {/* Groot transparant logo in het midden */}
-                     <div className="flex justify-center items-center">
-                       <div className="text-center">
-                         <img
-                           src="/Spitsenspellogowit.png"
-                           alt="KOSC Spitsenspel"
-                           className="h-12 md:h-16 lg:h-20 object-contain"
-                         />
+                     <div className="flex justify-center items-center w-full">
+                       <div className="text-center w-full">
+                         <div className="flex justify-center">
+                           <img
+                             src="/Spitsenspellogowit.png"
+                             alt="KOSC Spitsenspel"
+                             className="h-12 md:h-16 lg:h-20 object-contain"
+                           />
+                         </div>
                          <div className="text-white font-bold text-lg md:text-xl lg:text-2xl mt-2">
                            KOSC SPITSENSPEL
                          </div>
