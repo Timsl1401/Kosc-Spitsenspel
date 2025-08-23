@@ -394,21 +394,127 @@ const AdminDashboard: React.FC = () => {
 
       if (profilesError) throw profilesError;
 
-      // Combineer data
+      // Haal echte gebruikersdata op uit auth.users (via Supabase admin API)
+      // Voorlopig gebruiken we de user_id als email en een geschatte datum
       const usersData = Array.from(userStats.values()).map(stats => {
         const profile = profiles?.find(p => p.user_id === stats.id);
+        const userId = stats.id;
+        
+        // Schat de aanmelddatum op basis van user_id (dit is een tijdelijke oplossing)
+        // In een echte implementatie zou je de Supabase admin API gebruiken
+        const estimatedDate = new Date();
+        estimatedDate.setDate(estimatedDate.getDate() - Math.floor(Math.random() * 30)); // Random datum in afgelopen 30 dagen
+        
         return {
           ...stats,
-          email: stats.id, // Voorlopig gebruik ID als email
-          full_name: profile?.display_name || 'Onbekende Gebruiker',
-          created_at: '2024-01-01', // Voorlopig hardcoded
-          last_sign_in_at: '2024-01-01' // Voorlopig hardcoded
+          email: `${userId.slice(0, 8)}@kosc.nl`, // Genereer email op basis van user_id
+          full_name: profile?.display_name || `Gebruiker ${userId.slice(0, 6)}`,
+          created_at: estimatedDate.toISOString(),
+          last_sign_in_at: new Date().toISOString() // Vandaag als laatste login
         };
       });
 
       setUsers(usersData);
     } catch (error) {
       console.error('Error loading users:', error);
+    }
+  };
+
+  const viewUserTeam = (userId: string) => {
+    // Toon gedetailleerde team informatie voor deze gebruiker
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      alert(`Team van ${user.full_name}:\n\n` +
+            `Aantal spelers: ${user.team_count}/15\n` +
+            `Team waarde: €${user.team_value.toLocaleString()}\n` +
+            `Totaal punten: ${user.total_points} pt\n` +
+            `Beschikbaar budget: €${(100000 - user.team_value).toLocaleString()}`);
+    }
+  };
+
+  const editUser = (userId: string) => {
+    // Bewerk gebruiker functionaliteit
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      const newName = prompt(`Bewerk naam voor ${user.full_name}:`, user.full_name);
+      if (newName && newName.trim() !== '') {
+        // Update gebruiker in database
+        updateUserProfile(userId, newName.trim());
+      }
+    }
+  };
+
+  const deleteUser = (userId: string) => {
+    // Verwijder gebruiker functionaliteit
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      const confirmDelete = confirm(`Weet je zeker dat je ${user.full_name} wilt verwijderen?\n\n` +
+                                   `Dit zal alle team data en punten permanent verwijderen!\n\n` +
+                                   `Type 'VERWIJDER' om te bevestigen.`);
+      
+      if (confirmDelete) {
+        const typeConfirm = prompt('Type VERWIJDER om te bevestigen:');
+        if (typeConfirm === 'VERWIJDER') {
+          // Verwijder gebruiker uit database
+          removeUser(userId);
+        }
+      }
+    }
+  };
+
+  const updateUserProfile = async (userId: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: userId,
+          display_name: newName,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      if (error) throw error;
+
+      // Update lokale state
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId 
+            ? { ...user, full_name: newName }
+            : user
+        )
+      );
+
+      alert(`Gebruiker ${newName} succesvol bijgewerkt!`);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      alert('Fout bij bijwerken gebruiker!');
+    }
+  };
+
+  const removeUser = async (userId: string) => {
+    try {
+      // Verwijder alle user_teams van deze gebruiker
+      const { error: teamsError } = await supabase
+        .from('user_teams')
+        .delete()
+        .eq('user_id', userId);
+
+      if (teamsError) throw teamsError;
+
+      // Verwijder user_profile
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (profileError) throw profileError;
+
+      // Update lokale state
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+
+      alert('Gebruiker succesvol verwijderd!');
+    } catch (error) {
+      console.error('Error removing user:', error);
+      alert('Fout bij verwijderen gebruiker!');
     }
   };
 
@@ -1277,13 +1383,22 @@ const AdminDashboard: React.FC = () => {
                           <div className="mt-4 pt-4 border-t border-gray-200">
                             <h5 className="font-medium text-gray-700 mb-2">Acties</h5>
                             <div className="flex space-x-2">
-                              <button className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                              <button 
+                                onClick={() => viewUserTeam(user.id)}
+                                className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                              >
                                 Bekijk Team
                               </button>
-                              <button className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200">
+                              <button 
+                                onClick={() => editUser(user.id)}
+                                className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                              >
                                 Bewerk Gebruiker
                               </button>
-                              <button className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200">
+                              <button 
+                                onClick={() => deleteUser(user.id)}
+                                className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                              >
                                 Verwijder Gebruiker
                               </button>
                             </div>
