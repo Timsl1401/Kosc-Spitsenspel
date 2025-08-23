@@ -84,6 +84,7 @@ const AdminDashboard: React.FC = () => {
     team_value: number;
   }>>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
     if (isAdmin) {
@@ -424,6 +425,12 @@ const AdminDashboard: React.FC = () => {
       console.error('Error loading users:', error);
     }
   };
+
+  // Filter gebruikers op basis van zoekterm
+  const filteredUsers = users.filter(user =>
+    user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const viewUserTeam = (userId: string) => {
     // Toon gedetailleerde team informatie voor deze gebruiker
@@ -1314,16 +1321,36 @@ const AdminDashboard: React.FC = () => {
           <div className="space-y-6">
             {/* Gebruikers Overzicht */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Gebruikers Overzicht</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Gebruikers Overzicht</h2>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Zoek op naam of email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="text-gray-400 hover:text-gray-600"
+                      title="Zoekopdracht wissen"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
               
-              {users.length === 0 ? (
+              {filteredUsers.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p>Geen gebruikers gevonden</p>
+                  <p>{searchTerm ? `Geen gebruikers gevonden voor "${searchTerm}"` : 'Geen gebruikers gevonden'}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <div
                       key={user.id}
                       className={`p-4 rounded-lg border cursor-pointer transition-colors ${
@@ -1426,27 +1453,36 @@ const AdminDashboard: React.FC = () => {
 
             {/* Gebruikers Statistieken */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Gebruikers Statistieken</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Gebruikers Statistieken
+                {searchTerm && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    (Gefilterd: {filteredUsers.length} van {users.length})
+                  </span>
+                )}
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{users.length}</div>
-                  <div className="text-blue-800">Totaal Gebruikers</div>
+                  <div className="text-2xl font-bold text-blue-600">{filteredUsers.length}</div>
+                  <div className="text-blue-800">
+                    {searchTerm ? 'Gevonden Gebruikers' : 'Totaal Gebruikers'}
+                  </div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
-                    {users.length > 0 ? Math.round(users.reduce((sum, user) => sum + user.total_points, 0)) : 0}
+                    {filteredUsers.length > 0 ? Math.round(filteredUsers.reduce((sum, user) => sum + user.total_points, 0)) : 0}
                   </div>
                   <div className="text-green-800">Totaal Punten</div>
                 </div>
                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
                   <div className="text-2xl font-bold text-yellow-600">
-                    {users.length > 0 ? Math.round(users.reduce((sum, user) => sum + user.team_count, 0) / users.length * 10) / 10 : 0}
+                    {filteredUsers.length > 0 ? Math.round(filteredUsers.reduce((sum, user) => sum + user.team_count, 0) / filteredUsers.length * 10) / 10 : 0}
                   </div>
                   <div className="text-yellow-800">Gem. Spelers per Team</div>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">
-                    {users.length > 0 ? Math.round(users.reduce((sum, user) => sum + user.team_value, 0) / users.length) : 0}
+                    {filteredUsers.length > 0 ? Math.round(filteredUsers.reduce((sum, user) => sum + user.team_value, 0) / filteredUsers.length) : 0}
                   </div>
                   <div className="text-purple-800">Gem. Team Waarde</div>
                 </div>
