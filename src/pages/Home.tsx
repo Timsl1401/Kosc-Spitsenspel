@@ -32,11 +32,11 @@ const Home: React.FC = () => {
         <div className="relative z-10 p-8 md:p-16 text-center text-white">
           <div className="max-w-4xl mx-auto">
             {/* Logo */}
-            <div className="mb-8 flex justify-center">
+            <div className="mb-8 flex justify-center items-center w-full">
               <img
                 src="/Spitsenspellogo.png"
                 alt="KOSC Spitsenspel Logo"
-                className="h-32 md:h-48 lg:h-56 object-contain mx-auto"
+                className="h-40 md:h-56 lg:h-64 object-contain mx-auto"
               />
             </div>
             
