@@ -222,14 +222,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      <div>
                        <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">KOSC Spitsenspel</h3>
                        <p className="text-gray-300 text-sm md:text-base">
-                         Voorspel wedstrijden en strijd om de hoogste score!
+                         Koop en verkoop spelers, verdien punten voor doelpunten!
                        </p>
                      </div>
                      <div>
                        <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Snelle Links</h3>
                        <ul className="space-y-1 md:space-y-2">
                          <li><Link to="/" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Home</Link></li>
-                         <li><Link to="/matches" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Wedstrijden</Link></li>
+                         <li><Link to="/dashboard" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Dashboard</Link></li>
                          <li><Link to="/rules" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Regels</Link></li>
                          <li><Link to="/feedback" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Feedback</Link></li>
                        </ul>
