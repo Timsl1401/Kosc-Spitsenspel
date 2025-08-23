@@ -21,17 +21,22 @@ export default function Matches() {
   useEffect(() => {
     fetchMatches()
     
-    // Start automatische updates van voetbal.nl
+    // Start automatische updates van KOSC website
     scheduleMatchUpdates(supabase)
   }, [supabase])
 
   // Effect om echte wedstrijden op te halen als er geen wedstrijden zijn
   useEffect(() => {
-    if (matches.length === 0 && !loading) {
-      // Probeer echte wedstrijden op te halen van KOSC website
-      updateMatchesFromKosc()
-    }
-  }, [matches.length, loading])
+    // Voorkom infinite loop - alleen uitvoeren bij eerste render
+    const timer = setTimeout(() => {
+      if (matches.length === 0 && !loading) {
+        console.log('Geen wedstrijden gevonden, probeer KOSC website update...')
+        updateMatchesFromKosc()
+      }
+    }, 1000); // Wacht 1 seconde voordat we proberen te updaten
+    
+    return () => clearTimeout(timer);
+  }, []) // Alleen bij eerste render
 
   const fetchMatches = async () => {
     try {
@@ -72,6 +77,8 @@ export default function Matches() {
       }
     } catch (error) {
       console.error('Fout bij bijwerken wedstrijden van KOSC website:', error)
+      // Zorg ervoor dat loading state wordt gereset bij fout
+      setLoading(false)
     } finally {
       setLoading(false)
     }
