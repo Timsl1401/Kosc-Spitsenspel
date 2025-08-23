@@ -36,7 +36,7 @@ const Home: React.FC = () => {
               <img
                 src="/Spitsenspellogo.png"
                 alt="KOSC Spitsenspel Logo"
-                className="h-40 md:h-56 lg:h-64 object-contain mx-auto"
+                className="relative top-[-60px] h-40 md:h-56 lg:h-64 object-contain mx-auto"
               />
             </div>
             
@@ -54,7 +54,7 @@ const Home: React.FC = () => {
                   to="/register"
                   className="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg"
                 >
-                  Start met spelen
+                  Registreren
                 </Link>
                 <Link
                   to="/login"
@@ -89,7 +89,7 @@ const Home: React.FC = () => {
             </div>
             <h3 className="font-semibold mb-2">Registreer</h3>
             <p className="text-gray-600 text-sm">
-              Maak een gratis account aan
+              Maak een account aan
             </p>
           </div>
           
@@ -125,23 +125,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Call to Action */}
-      <div className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center p-8 rounded-lg shadow">
-        <h2 className="text-3xl font-bold mb-4">
-          Klaar om te beginnen?
-        </h2>
-        <p className="text-xl mb-6 opacity-90">
-          Doe mee aan het KOSC Spitsenspel en toon je team management skills!
-        </p>
-        {!user && (
-          <Link
-            to="/register"
-            className="bg-white text-green-600 px-8 py-4 rounded-md font-semibold text-lg hover:bg-gray-100 transition-colors"
-          >
-            Registreer nu gratis
-          </Link>
-        )}
-      </div>
+     
     </div>
   );
 };
