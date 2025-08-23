@@ -163,11 +163,19 @@ const Dashboard: React.FC = () => {
       Object.keys(userPoints).forEach(userId => {
         if (userPoints[userId]) {
           // Als dit de huidige gebruiker is, gebruik dan hun naam
-          if (userId === user?.id && user?.user_metadata?.first_name) {
-            userPoints[userId].firstName = user.user_metadata.first_name;
+          if (userId === user?.id) {
+            if (user?.user_metadata?.full_name) {
+              userPoints[userId].firstName = user.user_metadata.full_name;
+            } else if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+              userPoints[userId].firstName = `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
+            } else if (user?.user_metadata?.first_name) {
+              userPoints[userId].firstName = user.user_metadata.first_name;
+            } else {
+              userPoints[userId].firstName = user?.email?.split('@')[0] || `Gebruiker ${userId.slice(0, 8)}`;
+            }
           } else {
-            // Anders gebruik een deel van de email als naam
-            userPoints[userId].firstName = `Speler ${userId.slice(0, 6)}`;
+            // Voor andere gebruikers, probeer een betere naam te maken
+            userPoints[userId].firstName = `Gebruiker ${userId.slice(0, 8)}`;
           }
         }
       });
@@ -637,15 +645,15 @@ const Dashboard: React.FC = () => {
                           <div className="flex items-center">
                             <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
                               <span className="text-green-600 font-semibold">
-                                {entry.user_email.split('@')[0].charAt(0).toUpperCase()}
+                                {entry.user_email.charAt(0).toUpperCase()}
                               </span>
                             </div>
                             <div>
                               <div className="text-sm font-medium text-gray-900">
-                                {entry.user_email.split('@')[0]}
+                                {entry.user_email}
                               </div>
                               <div className="text-sm text-gray-500">
-                                {entry.user_email}
+                                Gebruiker #{entry.rank}
                               </div>
                             </div>
                           </div>
