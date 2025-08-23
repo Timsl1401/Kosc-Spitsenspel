@@ -109,6 +109,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      >
                        REGELS
                      </Link>
+                     <Link
+                       to="/app"
+                       className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/app' ? 'bg-green-500 text-black' : ''}`}
+                     >
+                       APP
+                     </Link>
                      {user && user.email === 'timsl.tsl@gmail.com' && (
                        <Link
                          to="/admin"
@@ -170,6 +176,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                            onClick={() => setIsMobileMenuOpen(false)}
                          >
                            REGELS
+                         </Link>
+                         <Link
+                           to="/app"
+                           className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/app' ? 'bg-green-500 text-black' : ''}`}
+                           onClick={() => setIsMobileMenuOpen(false)}
+                         >
+                           APP
                          </Link>
                          {user && user.email === 'timsl.tsl@gmail.com' && (
                            <Link
