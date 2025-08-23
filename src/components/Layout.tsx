@@ -52,7 +52,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                        <span className="text-white text-sm md:text-base hidden sm:block">Welkom, {user.user_metadata?.first_name || user.email}</span>
                        <button
                          onClick={handleSignOut}
-                         className="kosc-button text-sm md:text-base px-3 py-2 md:px-4 md:py-2"
+                         className="bg-red-600 hover:bg-red-700 text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2 rounded-md transition-colors"
                        >
                          Uitloggen
                        </button>
@@ -80,19 +80,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                    <div className="hidden md:flex space-x-1">
                      <Link
                        to="/"
-                       className={`kosc-nav-item ${location.pathname === '/' ? 'bg-green-500 text-black' : ''}`}
+                       className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/' ? 'bg-green-500 text-black' : ''}`}
                      >
                        HOME
                      </Link>
                      <Link
                        to="/matches"
-                       className={`kosc-nav-item ${location.pathname === '/matches' ? 'bg-green-500 text-black' : ''}`}
+                       className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/matches' ? 'bg-green-500 text-black' : ''}`}
                      >
                        WEDSTRIJDEN
                      </Link>
                      <Link
                        to="/teams"
-                       className={`kosc-nav-item ${location.pathname === '/teams' ? 'bg-green-500 text-black' : ''}`}
+                       className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/teams' ? 'bg-green-500 text-black' : ''}`}
                      >
                        TEAMS
                      </Link>
