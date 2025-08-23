@@ -850,7 +850,6 @@ const Dashboard: React.FC = () => {
           {/* Punten Header */}
           <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
             <div className="text-center">
-              <Trophy className="h-16 w-16 mx-auto mb-4 text-yellow-300" />
               <h2 className="text-3xl font-bold mb-2">Punten Overzicht</h2>
               <p className="text-green-100">Bekijk hoe je aan je {totalPoints} punten bent gekomen</p>
             </div>
