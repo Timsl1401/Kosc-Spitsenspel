@@ -15,18 +15,7 @@ const Rules: React.FC = () => {
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
           Hier vind je alle belangrijke regels en informatie over het KOSC Spitsenspel.
         </p>
-        
-        {user && (
-          <div className="flex justify-center">
-            <Link
-              to="/dashboard"
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors"
-            >
-              Ga naar Home
-            </Link>
-          </div>
-        )}
-      </div>
+     
 
       {/* Spelregels */}
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
