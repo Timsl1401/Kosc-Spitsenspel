@@ -8,8 +8,8 @@ const Rules: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Hoofdsectie */}
-      <div className="kosc-section text-center">
-        <h1 className="kosc-title text-4xl mb-6">
+      <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold text-green-600 mb-6">
           Spelregels KOSC Spitsenspel
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
@@ -20,7 +20,7 @@ const Rules: React.FC = () => {
           <div className="flex justify-center">
             <Link
               to="/dashboard"
-              className="kosc-button text-lg px-8 py-4"
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors"
             >
               Ga naar Dashboard
             </Link>
@@ -29,8 +29,8 @@ const Rules: React.FC = () => {
       </div>
 
       {/* Spelregels */}
-      <div className="kosc-section">
-        <h2 className="kosc-title text-2xl mb-6">Basis Spelregels</h2>
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+        <h2 className="text-2xl font-bold text-green-600 mb-6">Basis Spelregels</h2>
         
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-lg shadow">
@@ -111,7 +111,7 @@ const Rules: React.FC = () => {
       </div>
 
       {/* Call to Action */}
-      <div className="kosc-section bg-gradient-to-r from-green-500 to-green-600 text-white text-center">
+      <div className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold mb-4">
           Klaar om te beginnen?
         </h2>
