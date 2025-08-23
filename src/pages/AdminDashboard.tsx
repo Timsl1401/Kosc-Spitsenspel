@@ -85,6 +85,9 @@ const AdminDashboard: React.FC = () => {
   }>>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'list' | 'team' | 'edit'>('list');
+  const [selectedUserForView, setSelectedUserForView] = useState<any>(null);
+  const [userTeamDetails, setUserTeamDetails] = useState<any[]>([]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -476,28 +479,10 @@ const AdminDashboard: React.FC = () => {
       // Sorteer op punten (hoogste eerst)
       teamDetails.sort((a, b) => b.points - a.points);
 
-      // Maak gedetailleerde team weergave
-      let teamInfo = `Team van ${user.full_name}\n\n`;
-      teamInfo += `Aantal spelers: ${user.team_count}/15\n`;
-      teamInfo += `Team waarde: €${user.team_value.toLocaleString()}\n`;
-      teamInfo += `Totaal punten: ${user.total_points} pt\n`;
-      teamInfo += `Beschikbaar budget: €${(100000 - user.team_value).toLocaleString()}\n\n`;
-      
-      teamInfo += `Spelers:\n`;
-      teamInfo += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-      
-      teamDetails.forEach((player, index) => {
-        teamInfo += `${index + 1}. ${player.name} (${player.team})\n`;
-        teamInfo += `   Positie: ${player.position}\n`;
-        teamInfo += `   Doelpunten: ${player.goals}\n`;
-        teamInfo += `   Punten: ${player.points} pt\n`;
-        teamInfo += `   Prijs: €${player.price.toLocaleString()}\n`;
-        teamInfo += `   Gekocht: ${player.boughtAt}\n\n`;
-      });
-
-      // Toon in een grotere popup of console voor betere leesbaarheid
-      console.log('Team Details:', teamInfo);
-      alert(teamInfo);
+      // Sla data op en toon team view
+      setUserTeamDetails(teamDetails);
+      setSelectedUserForView(user);
+      setViewMode('team');
       
     } catch (error) {
       console.error('Error viewing user team:', error);
@@ -510,73 +495,15 @@ const AdminDashboard: React.FC = () => {
     const user = users.find(u => u.id === userId);
     if (!user) return;
 
-    // Maak een uitgebreide bewerkingsinterface
-    const editForm = `
-Bewerk Gebruiker: ${user.full_name}
+    // Toon edit view
+    setSelectedUserForView(user);
+    setViewMode('edit');
+  };
 
-1. Naam wijzigen:
-   Huidige naam: ${user.full_name}
-   Nieuwe naam: ________________
-
-2. Team beheren:
-   Huidige team waarde: €${user.team_value.toLocaleString()}
-   Huidige aantal spelers: ${user.team_count}/15
-
-3. Punten beheren:
-   Huidige punten: ${user.total_points} pt
-
-4. Acties:
-   - Spelers toevoegen/verwijderen
-   - Punten aanpassen
-   - Team waarde wijzigen
-
-Type 'NAAM' gevolgd door de nieuwe naam om de naam te wijzigen.
-Type 'SPELER' om spelers te beheren.
-Type 'PUNTEN' om punten aan te passen.
-Type 'ANNULEER' om te stoppen.
-`;
-
-    const action = prompt(editForm, 'NAAM');
-    
-    if (action === 'ANNULEER') return;
-    
-    if (action === 'NAAM') {
-      const newName = prompt(`Nieuwe naam voor ${user.full_name}:`, user.full_name);
-      if (newName && newName.trim() !== '') {
-        updateUserProfile(userId, newName.trim());
-      }
-    } else if (action === 'SPELER') {
-      const spelerAction = prompt(`
-Speler beheren voor ${user.full_name}:
-
-1. Type 'TOEVOEGEN' om een speler toe te voegen
-2. Type 'VERWIJDEREN' om een speler te verwijderen
-3. Type 'BEKIJK' om huidige spelers te zien
-4. Type 'ANNULEER' om te stoppen
-      `, 'BEKIJK');
-      
-      if (spelerAction === 'BEKIJK') {
-        viewUserTeam(userId);
-      } else if (spelerAction === 'TOEVOEGEN') {
-        alert('Speler toevoegen functionaliteit wordt nog geïmplementeerd.');
-      } else if (spelerAction === 'VERWIJDEREN') {
-        alert('Speler verwijderen functionaliteit wordt nog geïmplementeerd.');
-      }
-    } else if (action === 'PUNTEN') {
-      const puntenAction = prompt(`
-Punten beheren voor ${user.full_name}:
-
-1. Type 'AANPASSEN' om punten handmatig aan te passen
-2. Type 'HERBERKENEN' om punten automatisch te herberekenen
-3. Type 'ANNULEER' om te stoppen
-      `, 'HERBERKENEN');
-      
-      if (puntenAction === 'HERBERKENEN') {
-        recalculateUserPoints(userId);
-      } else if (puntenAction === 'AANPASSEN') {
-        alert('Handmatige punten aanpassing wordt nog geïmplementeerd.');
-      }
-    }
+  const goBackToList = () => {
+    setViewMode('list');
+    setSelectedUserForView(null);
+    setUserTeamDetails([]);
   };
 
   const recalculateUserPoints = async (userId: string) => {
@@ -1497,7 +1424,7 @@ Punten beheren voor ${user.full_name}:
           </div>
         )}
 
-        {activeTab === 'users' && (
+        {activeTab === 'users' && viewMode === 'list' && (
           <div className="space-y-6">
             {/* Gebruikers Overzicht */}
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -1630,8 +1557,196 @@ Punten beheren voor ${user.full_name}:
                 </div>
               )}
             </div>
+          </div>
+        )}
 
+        {/* Team View */}
+        {activeTab === 'users' && viewMode === 'team' && selectedUserForView && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  Team van {selectedUserForView.full_name}
+                </h2>
+                <button
+                  onClick={goBackToList}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                >
+                  ← Terug naar Overzicht
+                </button>
+              </div>
 
+              {/* Team Samenvatting */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{selectedUserForView.team_count}</div>
+                  <div className="text-blue-800">Spelers</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{selectedUserForView.total_points}</div>
+                  <div className="text-green-800">Totaal Punten</div>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                  <div className="text-2xl font-bold text-yellow-600">€{selectedUserForView.team_value.toLocaleString()}</div>
+                  <div className="text-yellow-800">Team Waarde</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">€{(100000 - selectedUserForView.team_value).toLocaleString()}</div>
+                  <div className="text-purple-800">Beschikbaar Budget</div>
+                </div>
+              </div>
+
+              {/* Spelers Lijst */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Spelers</h3>
+                {userTeamDetails.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p>Geen spelers in team</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {userTeamDetails.map((player, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="font-semibold text-gray-900">{player.name}</h4>
+                            <p className="text-sm text-gray-600">{player.team} • {player.position}</p>
+                            <p className="text-xs text-gray-500">Gekocht: {player.boughtAt}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-lg font-bold text-green-600">{player.points} pt</span>
+                            <p className="text-sm text-gray-600">€{player.price.toLocaleString()}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Doelpunten:</span>
+                            <span className="text-sm font-medium text-gray-900">{player.goals}</span>
+                          </div>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="text-sm text-gray-600">Punten per goal:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {getTeamPoints(player.team)} pt
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit User View */}
+        {activeTab === 'users' && viewMode === 'edit' && selectedUserForView && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  Bewerk Gebruiker: {selectedUserForView.full_name}
+                </h2>
+                <button
+                  onClick={goBackToList}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                >
+                  ← Terug naar Overzicht
+                </button>
+              </div>
+
+              {/* Edit Form */}
+              <div className="space-y-6">
+                {/* Naam Wijzigen */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Naam Wijzigen</h3>
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="text"
+                      placeholder="Nieuwe naam"
+                      className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                      defaultValue={selectedUserForView.full_name}
+                      id="newUserName"
+                    />
+                    <button
+                      onClick={() => {
+                        const newName = (document.getElementById('newUserName') as HTMLInputElement).value;
+                        if (newName && newName.trim() !== '') {
+                          updateUserProfile(selectedUserForView.id, newName.trim());
+                        }
+                      }}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      Naam Bijwerken
+                    </button>
+                  </div>
+                </div>
+
+                {/* Team Beheren */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Beheren</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{selectedUserForView.team_count}</div>
+                      <div className="text-blue-800">Huidige Spelers</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">€{selectedUserForView.team_value.toLocaleString()}</div>
+                      <div className="text-green-800">Team Waarde</div>
+                    </div>
+                    <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">€{(100000 - selectedUserForView.team_value).toLocaleString()}</div>
+                      <div className="text-yellow-800">Beschikbaar Budget</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex space-x-2">
+                    <button
+                      onClick={() => viewUserTeam(selectedUserForView.id)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      Bekijk Team
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                      disabled
+                    >
+                      Speler Toevoegen (Nog niet geïmplementeerd)
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                      disabled
+                    >
+                      Speler Verwijderen (Nog niet geïmplementeerd)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Punten Beheren */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Punten Beheren</h3>
+                  <div className="text-center p-4 bg-green-50 rounded-lg mb-4">
+                    <div className="text-2xl font-bold text-green-600">{selectedUserForView.total_points}</div>
+                    <div className="text-green-800">Huidige Totaal Punten</div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => recalculateUserPoints(selectedUserForView.id)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      Punten Herberekenen
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                      disabled
+                    >
+                      Handmatig Aanpassen (Nog niet geïmplementeerd)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
