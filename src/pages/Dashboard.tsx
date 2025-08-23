@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
     user_email: string;
     rank: number;
   }>>([]);
-  const [activeTab, setActiveTab] = useState<'team' | 'leaderboard'>('team');
+  const [activeTab, setActiveTab] = useState<'team' | 'leaderboard' | 'points'>('team');
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
   const [transferAllowed, setTransferAllowed] = useState(true);
 
@@ -592,6 +592,16 @@ const Dashboard: React.FC = () => {
             >
               Top 10 Ranglijst
             </button>
+            <button
+              onClick={() => setActiveTab('points')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'points'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Punten Overzicht
+            </button>
           </nav>
         </div>
       </div>
@@ -599,12 +609,13 @@ const Dashboard: React.FC = () => {
       {/* Header Stats - Only show when team tab is active */}
       {activeTab === 'team' && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          <div className="kosc-card text-center">
+          <div className="kosc-card text-center cursor-pointer hover:bg-green-50 transition-colors" onClick={() => setActiveTab('points')}>
             <div className="flex items-center justify-center mb-3">
               <Trophy className="h-6 w-6 md:h-8 md:w-8 text-green-500" />
             </div>
             <h3 className="text-lg md:text-2xl font-bold text-gray-800">{totalPoints}</h3>
             <p className="text-sm md:text-base text-gray-600">Totaal Punten</p>
+            <p className="text-xs text-green-600 mt-1">Klik voor details</p>
           </div>
 
           <div className="kosc-card text-center">
@@ -653,7 +664,7 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Content based on active tab */}
-      {activeTab === 'team' ? (
+      {activeTab === 'team' && (
         /* Current Team */
         <div className="kosc-section">
           <h2 className="kosc-title text-2xl mb-6">Mijn Team</h2>
@@ -705,7 +716,9 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'leaderboard' && (
         /* Leaderboard - Full Page Tab */
         <div className="space-y-6">
           {/* Leaderboard Header */}
@@ -827,6 +840,105 @@ const Dashboard: React.FC = () => {
           {/* Leaderboard Footer */}
           <div className="bg-gray-50 p-4 rounded-lg text-center text-sm text-gray-600">
             <p>Top 10 ranglijst op basis van behaalde punten</p>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'points' && (
+        /* Punten Overzicht - Full Page Tab */
+        <div className="space-y-6">
+          {/* Punten Header */}
+          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+            <div className="text-center">
+              <Trophy className="h-16 w-16 mx-auto mb-4 text-yellow-300" />
+              <h2 className="text-3xl font-bold mb-2">Punten Overzicht</h2>
+              <p className="text-green-100">Bekijk hoe je aan je {totalPoints} punten bent gekomen</p>
+            </div>
+          </div>
+
+          {/* Punten Samenvatting */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+              <div className="text-2xl font-bold text-green-600">{totalPoints}</div>
+              <div className="text-gray-600">Totaal Punten</div>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+              <div className="text-2xl font-bold text-blue-600">{userTeam.length}</div>
+              <div className="text-gray-600">Spelers in Team</div>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {userTeam.length > 0 ? Math.round(totalPoints / userTeam.length * 10) / 10 : 0}
+              </div>
+              <div className="text-gray-600">Gemiddelde per Speler</div>
+            </div>
+          </div>
+
+          {/* Gedetailleerd Punten Overzicht */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Punten per Speler</h3>
+              
+              {userTeam.length === 0 ? (
+                <div className="text-center py-8">
+                  <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">Nog geen spelers</h4>
+                  <p className="text-gray-600">Koop spelers om punten te verdienen!</p>
+                </div>
+              ) : (
+                                 <div className="space-y-4">
+                   {userTeam.map((item) => {
+                     const player = availablePlayers.find(p => p.id === item.player_id);
+                     if (!player) return null;
+
+                     // Gebruik de goals uit de players tabel als vereenvoudigde aanpak
+                     const goalsForPlayer = player.goals || 0;
+                     const pointsForPlayer = goalsForPlayer * getTeamPoints(player.team);
+
+                     return (
+                       <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                         <div className="flex justify-between items-start mb-3">
+                           <div>
+                             <h4 className="font-semibold text-gray-900">{player.name}</h4>
+                             <p className="text-sm text-gray-600">{player.team} • {player.position}</p>
+                             <p className="text-xs text-gray-500">Gekocht op: {new Date(item.bought_at).toLocaleDateString('nl-NL')}</p>
+                           </div>
+                           <div className="text-right">
+                             <span className="text-lg font-bold text-green-600">{pointsForPlayer} pt</span>
+                             <p className="text-sm text-gray-600">{getTeamPoints(player.team)} pt per goal</p>
+                           </div>
+                         </div>
+                         
+                         <div className="bg-gray-50 rounded-lg p-3">
+                           <div className="flex justify-between items-center">
+                             <span className="text-sm text-gray-600">Totaal doelpunten:</span>
+                             <span className="text-sm font-medium text-gray-900">{goalsForPlayer}</span>
+                           </div>
+                           <div className="flex justify-between items-center mt-1">
+                             <span className="text-sm text-gray-600">Berekening:</span>
+                             <span className="text-sm font-medium text-gray-900">
+                               {goalsForPlayer} × {getTeamPoints(player.team)} = {pointsForPlayer} pt
+                             </span>
+                           </div>
+                         </div>
+                       </div>
+                     );
+                   })}
+                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Punten Uitleg */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-900 mb-3">Hoe werken de punten?</h3>
+            <div className="space-y-2 text-sm text-blue-800">
+              <p>• <strong>KOSC 1:</strong> 3 punten per doelpunt</p>
+              <p>• <strong>KOSC 2:</strong> 2,5 punten per doelpunt</p>
+              <p>• <strong>KOSC 3:</strong> 2 punten per doelpunt</p>
+              <p>• <strong>KOSC 4-8:</strong> 1 punt per doelpunt</p>
+              <p>• Je krijgt alleen punten voor doelpunten die <strong>na je aankoop</strong> worden gescoord</p>
+            </div>
           </div>
         </div>
       )}
