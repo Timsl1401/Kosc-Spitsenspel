@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSupabase } from '../contexts/SupabaseContext'
-import { Calendar, Home, ExternalLink } from 'lucide-react'
+import { Calendar, Home, ExternalLink, RefreshCw } from 'lucide-react'
+import { VoetbalService, scheduleMatchUpdates } from '../services/voetbalService'
 
 interface Match {
   id: string
@@ -19,7 +20,10 @@ export default function Matches() {
 
   useEffect(() => {
     fetchMatches()
-  }, [])
+    
+    // Start automatische updates van voetbal.nl
+    scheduleMatchUpdates(supabase)
+  }, [supabase])
 
   const fetchMatches = async () => {
     try {
@@ -32,6 +36,28 @@ export default function Matches() {
       setMatches(data || [])
     } catch (error) {
       console.error('Error fetching matches:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateMatchesFromVoetbal = async () => {
+    try {
+      setLoading(true)
+      console.log('Handmatige update van wedstrijden van voetbal.nl...')
+      
+      // Haal wedstrijden op van voetbal.nl
+      const voetbalMatches = await VoetbalService.getAllKoscMatches()
+      
+      // Update database
+      await VoetbalService.updateMatchesInDatabase(supabase, voetbalMatches)
+      
+      // Herlaad wedstrijden uit database
+      await fetchMatches()
+      
+      console.log('Wedstrijden succesvol bijgewerkt van voetbal.nl')
+    } catch (error) {
+      console.error('Fout bij bijwerken wedstrijden van voetbal.nl:', error)
     } finally {
       setLoading(false)
     }
@@ -70,6 +96,14 @@ export default function Matches() {
               <Calendar className="inline h-4 w-4 mr-1" />
               {matches.length} wedstrijden
             </div>
+            <button
+              onClick={updateMatchesFromVoetbal}
+              disabled={loading}
+              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Update van voetbal.nl</span>
+            </button>
           </div>
         </div>
       </div>
