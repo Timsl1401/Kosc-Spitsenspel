@@ -107,7 +107,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                          to="/dashboard"
                          className={`kosc-nav-item ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
                        >
-                         HOME
+                         DASHBOARD
                        </Link>
                      )}
                      {user && user.email === 'timsl.tsl@gmail.com' && (

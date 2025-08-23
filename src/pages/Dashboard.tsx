@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Player, UserTeam, getTeamPoints, isTransferAllowed } from '../lib/supabase';
 import { Users, Trophy, Euro, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [userTeam, setUserTeam] = useState<UserTeam[]>([]);
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,11 +174,35 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (user) {
+      // Controleer of gebruiker voor het eerst inlogt (geen team heeft)
+      checkFirstTimeUser();
       loadUserData();
       loadTransferDeadline();
       loadLeaderboard();
     }
   }, [user]);
+
+  const checkFirstTimeUser = async () => {
+    try {
+      const { data: existingTeam, error } = await supabase
+        .from('user_teams')
+        .select('id')
+        .eq('user_id', user?.id)
+        .limit(1);
+      
+      if (error) {
+        console.error('Fout bij controleren eerste keer gebruiker:', error);
+        return;
+      }
+      
+      // Als gebruiker geen team heeft, stuur naar spelregels
+      if (!existingTeam || existingTeam.length === 0) {
+        navigate('/rules');
+      }
+    } catch (error) {
+      console.error('Fout bij controleren eerste keer gebruiker:', error);
+    }
+  };
 
   const loadUserData = async () => {
     try {
