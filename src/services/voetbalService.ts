@@ -64,42 +64,21 @@ export class VoetbalService {
     try {
       console.log(`Scraping KOSC website voor ${teamName}...`);
       
-      // Probeer wedstrijden op te halen van de KOSC wedstrijdprogramma pagina
-      const wedstrijdUrl = 'https://www.kosc.nl/wedstrijdprogramma';
-      console.log(`Probeer wedstrijdprogramma: ${wedstrijdUrl}`);
+      // CORS probleem: frontend kan niet direct naar externe websites
+      // Voor nu gebruiken we mock data, later kan dit via backend API
+      console.log('CORS beperking: frontend kan niet direct naar kosc.nl');
+      console.log('Gebruik mock data voor ontwikkeling');
       
-      // Probeer de wedstrijd data op te halen
-      try {
-        const response = await fetch(wedstrijdUrl);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const html = await response.text();
-        console.log('HTML opgehaald van KOSC website');
-        
-        // Zoek naar wedstrijd data in de HTML
-        const matches = this.parseWedstrijdData(html, teamName);
-        console.log(`${matches.length} wedstrijden gevonden voor ${teamName}`);
-        
-        // Filter alleen toekomstige wedstrijden
-        const futureMatches = matches.filter(match => {
-          const matchDate = new Date(match.matchDate);
-          const today = new Date();
-          return matchDate >= today;
-        });
-        
-        console.log(`${futureMatches.length} toekomstige wedstrijden voor ${teamName}`);
-        return futureMatches;
-      } catch (fetchError) {
-        console.log('Fetch error, probeer mock data:', fetchError);
-        // Als fetch niet werkt, return mock data voor ontwikkeling
-        return this.getMockMatches(teamName);
-      }
+      return this.getMockMatches(teamName);
+      
+      // Toekomstige implementatie via backend API:
+      // 1. Maak backend endpoint voor scraping
+      // 2. Frontend roept eigen backend aan
+      // 3. Backend scraped kosc.nl en stuurt data terug
       
     } catch (error) {
       console.error(`Fout bij scraping KOSC website voor ${teamName}:`, error);
-      return [];
+      return this.getMockMatches(teamName);
     }
   }
 
@@ -174,6 +153,8 @@ export class VoetbalService {
     const today = new Date();
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
     const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const nextTwoWeeks = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const nextThreeWeeks = new Date(today.getTime() + 21 * 24 * 60 * 60 * 1000);
     
     // Realistische Twentse teams voor KOSC wedstrijden
     const twentseTeams = [
@@ -182,11 +163,12 @@ export class VoetbalService {
       'VV Albergen', 'VV Vriezenveen', 'VV Rijssen', 'VV Enter'
     ];
     
-    // Random selectie van tegenstanders
-    const randomTeam1 = twentseTeams[Math.floor(Math.random() * twentseTeams.length)];
-    const randomTeam2 = twentseTeams[Math.floor(Math.random() * twentseTeams.length)];
-    const randomTeam3 = twentseTeams[Math.floor(Math.random() * twentseTeams.length)];
-    const randomTeam4 = twentseTeams[Math.floor(Math.random() * twentseTeams.length)];
+    // Random selectie van tegenstanders (zonder duplicaten)
+    const availableTeams = [...twentseTeams];
+    const randomTeam1 = availableTeams.splice(Math.floor(Math.random() * availableTeams.length), 1)[0];
+    const randomTeam2 = availableTeams.splice(Math.floor(Math.random() * availableTeams.length), 1)[0];
+    const randomTeam3 = availableTeams.splice(Math.floor(Math.random() * availableTeams.length), 1)[0];
+    const randomTeam4 = availableTeams.splice(Math.floor(Math.random() * availableTeams.length), 1)[0];
     
     // Alleen toekomstige wedstrijden (geen wedstrijden uit het verleden)
     return [
@@ -204,8 +186,26 @@ export class VoetbalService {
         awayTeam: teamName,
         homeScore: undefined,
         awayScore: undefined,
-        matchDate: nextMonth.toISOString(),
+        matchDate: nextTwoWeeks.toISOString(),
+        competition: 'Eerste Klasse',
+        status: 'scheduled'
+      },
+      {
+        homeTeam: teamName,
+        awayTeam: randomTeam3,
+        homeScore: undefined,
+        awayScore: undefined,
+        matchDate: nextThreeWeeks.toISOString(),
         competition: 'Beker',
+        status: 'scheduled'
+      },
+      {
+        homeTeam: randomTeam4,
+        awayTeam: teamName,
+        homeScore: undefined,
+        awayScore: undefined,
+        matchDate: nextMonth.toISOString(),
+        competition: 'Eerste Klasse',
         status: 'scheduled'
       }
     ];
