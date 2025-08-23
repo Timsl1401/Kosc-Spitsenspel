@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../contexts/AdminContext';
-import { supabase } from '../lib/supabase';
+import { supabase, getTeamPoints } from '../lib/supabase';
 import { Shield, Users, Target, AlertTriangle, Plus, Edit, Trash2, Save, X, Calendar, MessageSquare } from 'lucide-react';
 
 interface Player {
@@ -26,7 +26,7 @@ const AdminDashboard: React.FC = () => {
   const { isAdmin, loading } = useAdmin();
   const [players, setPlayers] = useState<Player[]>([]);
   const [suspiciousActivities, setSuspiciousActivities] = useState<SuspiciousActivity[]>([]);
-  const [activeTab, setActiveTab] = useState<'players' | 'goals' | 'dates' | 'feedback' | 'monitoring'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'goals' | 'dates' | 'feedback' | 'monitoring' | 'users'>('players');
   
   // Spelers beheren
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
@@ -72,6 +72,19 @@ const AdminDashboard: React.FC = () => {
     created_at: string;
   }>>([]);
 
+  // Gebruikers data
+  const [users, setUsers] = useState<Array<{
+    id: string;
+    email: string;
+    full_name: string;
+    created_at: string;
+    last_sign_in_at: string;
+    team_count: number;
+    total_points: number;
+    team_value: number;
+  }>>([]);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+
   useEffect(() => {
     if (isAdmin) {
       checkDatabaseStatus();
@@ -79,6 +92,7 @@ const AdminDashboard: React.FC = () => {
       loadSuspiciousActivities();
       loadGameSettings();
       loadFeedback();
+      loadUsers();
     }
   }, [isAdmin]);
 
@@ -326,6 +340,78 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const loadUsers = async () => {
+    try {
+      // Haal alle gebruikers op met hun team en punten informatie
+      const { data: userTeams, error: userTeamsError } = await supabase
+        .from('user_teams')
+        .select(`
+          user_id,
+          bought_at,
+          sold_at,
+          players (
+            id,
+            name,
+            team,
+            goals,
+            price
+          )
+        `)
+        .is('sold_at', null);
+
+      if (userTeamsError) throw userTeamsError;
+
+      // Groepeer per gebruiker en bereken statistieken
+      const userStats = new Map();
+      
+      userTeams?.forEach(userTeam => {
+        const userId = userTeam.user_id;
+        const player = userTeam.players as any;
+        
+        if (!userStats.has(userId)) {
+          userStats.set(userId, {
+            id: userId,
+            team_count: 0,
+            total_points: 0,
+            team_value: 0
+          });
+        }
+        
+        const stats = userStats.get(userId);
+        stats.team_count++;
+        stats.team_value += player.price || 0;
+        
+        // Bereken punten (vereenvoudigde aanpak)
+        const goalsForPlayer = player.goals || 0;
+        const pointsForPlayer = goalsForPlayer * getTeamPoints(player.team);
+        stats.total_points += pointsForPlayer;
+      });
+
+      // Haal gebruikersprofielen op
+      const { data: profiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name');
+
+      if (profilesError) throw profilesError;
+
+      // Combineer data
+      const usersData = Array.from(userStats.values()).map(stats => {
+        const profile = profiles?.find(p => p.user_id === stats.id);
+        return {
+          ...stats,
+          email: stats.id, // Voorlopig gebruik ID als email
+          full_name: profile?.display_name || 'Onbekende Gebruiker',
+          created_at: '2024-01-01', // Voorlopig hardcoded
+          last_sign_in_at: '2024-01-01' // Voorlopig hardcoded
+        };
+      });
+
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+
   const updateGameSetting = async (key: string, value: string) => {
     try {
       console.log('Updating game setting:', { key, value });
@@ -472,6 +558,17 @@ const AdminDashboard: React.FC = () => {
                  >
                    <AlertTriangle className="inline-block w-4 h-4 mr-2" />
                    Monitoring
+                 </button>
+                 <button
+                   onClick={() => setActiveTab('users')}
+                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                     activeTab === 'users'
+                       ? 'border-green-500 text-green-600'
+                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                   }`}
+                 >
+                   <Users className="inline-block w-4 h-4 mr-2" />
+                   Gebruikers
                  </button>
             </nav>
           </div>
@@ -1088,6 +1185,142 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">✓</div>
                   <div className="text-green-800">Monitoring Actief</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            {/* Gebruikers Overzicht */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Gebruikers Overzicht</h2>
+              
+              {users.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>Geen gebruikers gevonden</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {users.map((user) => (
+                    <div
+                      key={user.id}
+                      className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                        selectedUser === user.id
+                          ? 'bg-blue-50 border-blue-300'
+                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                      }`}
+                      onClick={() => setSelectedUser(selectedUser === user.id ? null : user.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{user.full_name}</div>
+                          <div className="text-sm text-gray-600">{user.email}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Aangemeld: {new Date(user.created_at).toLocaleDateString('nl-NL')}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-green-600">{user.total_points} pt</div>
+                          <div className="text-sm text-gray-600">{user.team_count} spelers</div>
+                          <div className="text-sm text-gray-600">€{user.team_value.toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      {/* Uitgebreide Gebruikers Informatie */}
+                      {selectedUser === user.id && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h4 className="font-semibold text-gray-900 mb-3">Gedetailleerde Informatie</h4>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h5 className="font-medium text-gray-700 mb-2">Team Samenstelling</h5>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Aantal spelers:</span>
+                                  <span className="font-medium">{user.team_count}/15</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Team waarde:</span>
+                                  <span className="font-medium">€{user.team_value.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Beschikbaar budget:</span>
+                                  <span className="font-medium">€{(100000 - user.team_value).toLocaleString()}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <h5 className="font-medium text-gray-700 mb-2">Prestaties</h5>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Totaal punten:</span>
+                                  <span className="font-medium text-green-600">{user.total_points} pt</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Gemiddelde per speler:</span>
+                                  <span className="font-medium">
+                                    {user.team_count > 0 ? Math.round(user.total_points / user.team_count * 10) / 10 : 0} pt
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Laatste login:</span>
+                                  <span className="font-medium">{new Date(user.last_sign_in_at).toLocaleDateString('nl-NL')}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <h5 className="font-medium text-gray-700 mb-2">Acties</h5>
+                            <div className="flex space-x-2">
+                              <button className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                                Bekijk Team
+                              </button>
+                              <button className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200">
+                                Bewerk Gebruiker
+                              </button>
+                              <button className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200">
+                                Verwijder Gebruiker
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Gebruikers Statistieken */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Gebruikers Statistieken</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{users.length}</div>
+                  <div className="text-blue-800">Totaal Gebruikers</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    {users.length > 0 ? Math.round(users.reduce((sum, user) => sum + user.total_points, 0)) : 0}
+                  </div>
+                  <div className="text-green-800">Totaal Punten</div>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {users.length > 0 ? Math.round(users.reduce((sum, user) => sum + user.team_count, 0) / users.length * 10) / 10 : 0}
+                  </div>
+                  <div className="text-yellow-800">Gem. Spelers per Team</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {users.length > 0 ? Math.round(users.reduce((sum, user) => sum + user.team_value, 0) / users.length) : 0}
+                  </div>
+                  <div className="text-purple-800">Gem. Team Waarde</div>
                 </div>
               </div>
             </div>
