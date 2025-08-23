@@ -596,9 +596,6 @@ const Dashboard: React.FC = () => {
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Team Waarde
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -647,17 +644,7 @@ const Dashboard: React.FC = () => {
                             €{entry.team_value.toLocaleString()}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            index < 3 
-                              ? 'bg-yellow-100 text-yellow-800' 
-                              : index < 10 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {index < 3 ? '🏆 Top 3' : index < 10 ? '✅ Top 10' : '📊 Deelnemer'}
-                          </span>
-                        </td>
+
                       </tr>
                     ))}
                   </tbody>
@@ -668,7 +655,7 @@ const Dashboard: React.FC = () => {
 
           {/* Leaderboard Footer */}
           <div className="bg-gray-50 p-4 rounded-lg text-center text-sm text-gray-600">
-            <p>De ranglijst wordt bijgewerkt op basis van doelpunten en team prestaties</p>
+            <p>Top 10 ranglijst op basis van behaalde punten</p>
           </div>
         </div>
       )}
