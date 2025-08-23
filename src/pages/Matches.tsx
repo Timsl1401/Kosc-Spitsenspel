@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSupabase } from '../contexts/SupabaseContext'
-import { Calendar, Home, ExternalLink, RefreshCw } from 'lucide-react'
+import { Calendar, Home, ExternalLink, RefreshCw, Trophy } from 'lucide-react'
 import { VoetbalService, scheduleMatchUpdates } from '../services/voetbalService'
 
 interface Match {
@@ -135,84 +135,72 @@ export default function Matches() {
         </div>
       </div>
 
-      {/* Matches list */}
-      <div className="space-y-4">
-        {matches.length === 0 ? (
-          <div className="bg-white shadow rounded-lg p-8 text-center">
-            <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Geen wedstrijden gevonden</h3>
-            <p className="text-gray-500 mb-4">
-              Er zijn momenteel geen wedstrijden gepland voor de KOSC teams.
+      {/* KOSC Website Links */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white shadow rounded-lg p-6">
+          <div className="text-center">
+            <Calendar className="h-16 w-16 text-blue-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Wedstrijdprogramma</h3>
+            <p className="text-gray-600 mb-4">
+              Bekijk alle aankomende wedstrijden van alle KOSC teams
             </p>
-            <button
-              onClick={updateMatchesFromKosc}
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg transition-colors"
+            <a
+              href="https://www.kosc.nl/wedstrijdprogramma"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
             >
-              {loading ? 'Zoeken...' : 'Zoek opnieuw'}
-            </button>
+              <ExternalLink className="h-4 w-4" />
+              <span>Ga naar KOSC Wedstrijden</span>
+            </a>
           </div>
-        ) : (
-          matches.map((match) => (
-            <div key={match.id} className="bg-white shadow rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-500">
-                    {formatDate(match.match_date)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {match.is_competitive && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-kosc-green-100 text-kosc-green-800">
-                      Competitie
-                    </span>
-                  )}
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    {match.is_competitive ? 'Punten tellen' : 'Vriendschappelijk'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4 items-center">
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Home className="h-5 w-5 text-gray-400 mr-2" />
-                  <span className="text-lg font-semibold text-gray-900">{match.home_team}</span>
-                </div>
-                <div className="text-3xl font-bold text-gray-900">
-                  {match.home_score !== null ? match.home_score : '-'}
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-sm text-gray-500 mb-2">VS</div>
-                <div className="text-xs text-gray-400">Kick-off</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <span className="text-lg font-semibold text-gray-900">{match.away_team}</span>
-                  <ExternalLink className="h-5 w-5 text-gray-400 ml-2" />
-                </div>
-                <div className="text-3xl font-bold text-gray-900">
-                  {match.away_score !== null ? match.away_score : '-'}
-                </div>
-              </div>
-            </div>
-            
-            {match.home_score !== null && match.away_score !== null && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="text-center">
-                  <span className="text-sm text-gray-500">
-                    Eindstand: {match.home_team} {match.home_score} - {match.away_score} {match.away_team}
-                  </span>
-                </div>
-              </div>
-            )}
+        </div>
+
+        <div className="bg-white shadow rounded-lg p-6">
+          <div className="text-center">
+            <Trophy className="h-16 w-16 text-green-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Uitslagen</h3>
+            <p className="text-gray-600 mb-4">
+              Bekijk alle resultaten van gespeelde wedstrijden
+            </p>
+            <a
+              href="https://www.kosc.nl/uitslagen"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span>Ga naar KOSC Uitslagen</span>
+            </a>
           </div>
-        ))
-        )}
+        </div>
+      </div>
+
+      {/* Matches list */}
+      <div className="bg-white shadow rounded-lg p-8 text-center">
+        <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Wedstrijden worden geladen</h3>
+        <p className="text-gray-500 mb-4">
+          Voor de meest actuele wedstrijden en uitslagen, gebruik de knoppen hierboven om naar de officiële KOSC website te gaan.
+        </p>
+        <div className="flex justify-center space-x-4">
+          <a
+            href="https://www.kosc.nl/wedstrijdprogramma"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Wedstrijdprogramma
+          </a>
+          <a
+            href="https://www.kosc.nl/uitslagen"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Uitslagen
+          </a>
+        </div>
       </div>
 
 
