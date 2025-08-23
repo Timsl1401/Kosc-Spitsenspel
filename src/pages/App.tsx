@@ -18,10 +18,7 @@ const App: React.FC = () => {
 
         {/* iOS Instructies */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center mb-4">
-            <span className="text-2xl mr-3">🍎</span>
-            <h2 className="text-2xl font-bold text-gray-900">iPhone/iPad</h2>
-          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">iPhone/iPad</h2>
           
           <div className="space-y-3">
             <p><strong>1.</strong> Open Safari en ga naar deze website</p>
@@ -37,10 +34,7 @@ const App: React.FC = () => {
 
         {/* Android Instructies */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center mb-4">
-            <span className="text-2xl mr-3">🤖</span>
-            <h2 className="text-2xl font-bold text-gray-900">Android</h2>
-          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Android</h2>
           
           <div className="space-y-3">
             <p><strong>1.</strong> Open Chrome en ga naar deze website</p>
@@ -54,16 +48,7 @@ const App: React.FC = () => {
           </p>
         </div>
 
-        {/* Extra Tips */}
-        <div className="bg-gray-100 rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Handig om te weten</h2>
-          
-          <div className="space-y-2 text-sm text-gray-700">
-            <p>• De app werkt ook offline</p>
-            <p>• Neemt bijna geen ruimte in beslag</p>
-            <p>• Wordt automatisch bijgewerkt</p>
-          </div>
-        </div>
+
 
         {/* Contact */}
         <div className="text-center mt-6">
