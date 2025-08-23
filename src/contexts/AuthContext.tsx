@@ -56,12 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (data.user && !data.user.email_confirmed_at) {
-        return { success: false, message: 'Please check your email and confirm your account before logging in.' }
+        return { success: false, message: 'Je account is nog niet bevestigd. Controleer je email (inclusief reclame/spam mappen) en klik op de bevestigingslink voordat je inlogt.' }
       }
       
-      return { success: true, message: 'Successfully logged in!' }
+      return { success: true, message: 'Succesvol ingelogd!' }
     } catch (error: any) {
-      return { success: false, message: error.message || 'An error occurred during sign in' }
+      return { success: false, message: error.message || 'Er is een fout opgetreden bij het inloggen' }
     }
   }
 
@@ -83,12 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (data.user) {
-        return { success: true, message: 'Account created! Check your email to confirm your account before logging in.' }
+        return { success: true, message: 'Account aangemaakt! Controleer je email (inclusief reclame/spam mappen) om je account te bevestigen voordat je inlogt.' }
       }
       
-      return { success: true, message: 'Account created successfully!' }
+      return { success: true, message: 'Account succesvol aangemaakt!' }
     } catch (error: any) {
-      return { success: false, message: error.message || 'An error occurred during sign up' }
+      return { success: false, message: error.message || 'Er is een fout opgetreden bij het aanmaken van je account' }
     }
   }
 

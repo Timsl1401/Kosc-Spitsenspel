@@ -17,42 +17,45 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-                     {/* Bovenste balk */}
-               <div className="kosc-header">
-                 <div className="container mx-auto px-4 flex justify-between items-center">
-                   <div className="flex space-x-4 md:space-x-6">
-                     <Link to="/feedback" className="text-white hover:text-green-400 transition-colors text-sm md:text-base">
-                       FEEDBACK
-                     </Link>
-                   </div>
-                 </div>
-               </div>
-
-                                          {/* Hoofdheader met groot transparant logo */}
+                     {/* Hoofdheader met logo, feedback en uitlog */}
                <div className="kosc-header">
                  <div className="container mx-auto px-4 py-4">
-                   <div className="flex items-center justify-between">
+                   <div className="grid grid-cols-3 items-center">
+                     {/* Feedback link links */}
+                     <div className="flex justify-start">
+                       <Link to="/feedback" className="text-white hover:text-green-400 transition-colors text-sm md:text-base">
+                         FEEDBACK
+                       </Link>
+                     </div>
+
                      {/* Groot transparant logo in het midden */}
-                     <div className="flex-1 flex justify-center">
-                       <img
-                         src="/Spitsenspellogo.png"
-                         alt="KOSC Spitsenspel"
-                         className="h-16 md:h-20 lg:h-24 object-contain opacity-90"
-                       />
+                     <div className="flex justify-center items-center">
+                       <div className="text-center">
+                         <img
+                           src="/Spitsenspellogo.png"
+                           alt="KOSC Spitsenspel"
+                           className="h-12 md:h-16 lg:h-20 object-contain"
+                         />
+                         <div className="text-white font-bold text-lg md:text-xl lg:text-2xl mt-2">
+                           KOSC SPITSENSPEL
+                         </div>
+                       </div>
                      </div>
 
                      {/* Uitlog knop rechts (alleen als user ingelogd is) */}
-                     {user && (
-                       <div className="flex items-center space-x-2 md:space-x-4">
-                         <span className="text-white text-sm md:text-base hidden sm:block">Welkom, {user.user_metadata?.first_name || user.email}</span>
-                         <button
-                           onClick={handleSignOut}
-                           className="bg-red-600 hover:bg-red-700 text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2 rounded-md transition-colors"
-                         >
-                           Uitloggen
-                         </button>
-                       </div>
-                     )}
+                     <div className="flex justify-end">
+                       {user && (
+                         <div className="flex items-center space-x-2 md:space-x-4">
+                           <span className="text-white text-sm md:text-base hidden sm:block">Welkom, {user.user_metadata?.first_name || user.email}</span>
+                           <button
+                             onClick={handleSignOut}
+                             className="bg-red-600 hover:bg-red-700 text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2 rounded-md transition-colors"
+                           >
+                             Uitloggen
+                           </button>
+                         </div>
+                       )}
+                     </div>
                    </div>
                  </div>
                </div>
