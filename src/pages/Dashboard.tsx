@@ -175,7 +175,9 @@ const Dashboard: React.FC = () => {
             }
           } else {
             // Voor andere gebruikers, probeer een betere naam te maken
-            userPoints[userId].firstName = `Gebruiker ${userId.slice(0, 8)}`;
+            // Gebruik een kortere, leesbaardere ID
+            const shortId = userId.slice(0, 6);
+            userPoints[userId].firstName = `Speler ${shortId}`;
           }
         }
       });
@@ -186,7 +188,7 @@ const Dashboard: React.FC = () => {
           user_id: userId,
           total_points: data.points,
           team_value: data.teamValue,
-          user_email: data.firstName || data.email || `Gebruiker ${userId.slice(0, 8)}`,
+          user_email: data.firstName || data.email || `Speler ${userId.slice(0, 6)}`,
           rank: 0
         }))
         .sort((a, b) => b.total_points - a.total_points)
