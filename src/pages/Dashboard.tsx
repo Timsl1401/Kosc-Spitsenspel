@@ -23,8 +23,6 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'team' | 'leaderboard'>('team');
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
   const [transferAllowed, setTransferAllowed] = useState(true);
-  const [displayName, setDisplayName] = useState('');
-  const [showNameInput, setShowNameInput] = useState(false);
 
 
   const loadTransferStatus = async () => {
@@ -41,55 +39,49 @@ const Dashboard: React.FC = () => {
     if (!user?.id) return;
     
     try {
-      const { data: profile, error } = await supabase
+      // Haal bestaand profiel op
+      const { data: profile } = await supabase
         .from('user_profiles')
         .select('display_name')
         .eq('user_id', user.id)
         .single();
       
-      if (profile && !error) {
-        setDisplayName(profile.display_name);
+      let userName = '';
+      
+      // Bepaal de naam uit metadata
+      if (user?.user_metadata?.full_name) {
+        userName = user.user_metadata.full_name;
+      } else if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+        userName = `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
+      } else if (user?.user_metadata?.first_name) {
+        userName = user.user_metadata.first_name;
       } else {
-        // Gebruik metadata als fallback
-        if (user?.user_metadata?.full_name) {
-          setDisplayName(user.user_metadata.full_name);
-        } else if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
-          setDisplayName(`${user.user_metadata.first_name} ${user.user_metadata.last_name}`);
-        } else if (user?.user_metadata?.first_name) {
-          setDisplayName(user.user_metadata.first_name);
-        } else {
-          setDisplayName(user?.email?.split('@')[0] || '');
+        userName = user?.email?.split('@')[0] || '';
+      }
+      
+      // Als er geen profiel is of de naam is anders, maak/update het profiel
+      if (!profile || profile.display_name !== userName) {
+        const { error: upsertError } = await supabase
+          .from('user_profiles')
+          .upsert({
+            user_id: user.id,
+            display_name: userName,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+        
+        if (upsertError) {
+          console.error('Error updating user profile:', upsertError);
         }
       }
+      
+
     } catch (error) {
       console.error('Error loading user profile:', error);
     }
   };
 
-  const updateDisplayName = async (newName: string) => {
-    if (!user?.id || !newName.trim()) return;
-    
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          display_name: newName.trim(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-      
-      if (error) throw error;
-      
-      setDisplayName(newName.trim());
-      setShowNameInput(false);
-      await loadLeaderboard(); // Herlaad ranglijst met nieuwe naam
-      alert('Je naam is bijgewerkt!');
-    } catch (error) {
-      console.error('Error updating display name:', error);
-      alert('Er is een fout opgetreden bij het bijwerken van je naam.');
-    }
-  };
+
 
   const loadTransferDeadline = async () => {
     const { data: deadlineData } = await supabase
@@ -510,49 +502,7 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Naam Instelling */}
-      <div className="col-span-2 md:col-span-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Je Naam in de Ranglijst</h3>
-              <p className="text-sm text-gray-600">
-                {displayName ? `Huidige naam: ${displayName}` : 'Nog geen naam ingesteld'}
-              </p>
-            </div>
-            {!showNameInput ? (
-              <button
-                onClick={() => setShowNameInput(true)}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-              >
-                {displayName ? 'Wijzigen' : 'Instellen'}
-              </button>
-            ) : (
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Voer je naam in"
-                  className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-                <button
-                  onClick={() => updateDisplayName(displayName)}
-                  className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition-colors"
-                >
-                  Opslaan
-                </button>
-                <button
-                  onClick={() => setShowNameInput(false)}
-                  className="bg-gray-500 text-white px-3 py-2 rounded-md hover:bg-gray-600 transition-colors"
-                >
-                  Annuleren
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+
 
       {/* Tab Navigation */}
       <div className="col-span-2 md:col-span-4 mb-6">
