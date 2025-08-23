@@ -80,6 +80,14 @@ export interface GameSettings {
   updated_at: string
 }
 
+export interface UserProfile {
+  id: string
+  user_id: string
+  display_name: string
+  created_at: string
+  updated_at: string
+}
+
 // Functie om punten per team te berekenen
 export const getTeamPoints = (team: string): number => {
   switch (team) {
