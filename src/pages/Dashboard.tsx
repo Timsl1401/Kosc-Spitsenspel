@@ -22,7 +22,18 @@ const Dashboard: React.FC = () => {
   }>>([]);
   const [activeTab, setActiveTab] = useState<'team' | 'leaderboard'>('team');
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
+  const [transferAllowed, setTransferAllowed] = useState(true);
 
+
+  const loadTransferStatus = async () => {
+    try {
+      const allowed = await isTransferAllowed();
+      setTransferAllowed(allowed);
+    } catch (error) {
+      console.error('Error loading transfer status:', error);
+      setTransferAllowed(false);
+    }
+  };
 
   const loadTransferDeadline = async () => {
     const { data: deadlineData } = await supabase
@@ -192,6 +203,7 @@ const Dashboard: React.FC = () => {
       loadUserData();
       loadTransferDeadline();
       loadLeaderboard();
+      loadTransferStatus();
     }
   }, [user]);
 
@@ -261,7 +273,8 @@ const Dashboard: React.FC = () => {
     }
 
     // Check weekend restriction
-    if (!isTransferAllowed()) {
+    const transferAllowed = await isTransferAllowed();
+    if (!transferAllowed) {
       alert('Transfers zijn niet toegestaan in het weekend!');
       return;
     }
@@ -331,7 +344,8 @@ const Dashboard: React.FC = () => {
 
   const sellPlayer = async (userTeamItem: UserTeam) => {
     // Check weekend restriction
-    if (!isTransferAllowed()) {
+    const transferAllowed = await isTransferAllowed();
+    if (!transferAllowed) {
       alert('Transfers zijn niet toegestaan in het weekend!');
       return;
     }
@@ -472,7 +486,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Transfer Status */}
-      {!isTransferAllowed() && (
+      {!transferAllowed && (
         <div className="kosc-section bg-yellow-50 border-l-4 border-yellow-500">
           <div className="flex items-center">
             <AlertTriangle className="h-6 w-6 text-yellow-500 mr-3" />
@@ -527,7 +541,7 @@ const Dashboard: React.FC = () => {
                       </span>
                       <button
                         onClick={() => sellPlayer(item)}
-                        disabled={!isTransferAllowed()}
+                        disabled={!transferAllowed}
                         className="text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Verkoop
@@ -729,7 +743,7 @@ const Dashboard: React.FC = () => {
                               </span>
                               <button
                                 onClick={() => buyPlayer(player)}
-                                disabled={!isTransferAllowed() || budget < player.price || userTeam.length >= 15}
+                                disabled={!transferAllowed || budget < player.price || userTeam.length >= 15}
                                 className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 Koop

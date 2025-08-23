@@ -98,10 +98,31 @@ export const getTeamPoints = (team: string): number => {
 }
 
 // Functie om te checken of transfers toegestaan zijn (niet in weekend)
-export const isTransferAllowed = (): boolean => {
-  const today = new Date()
-  const dayOfWeek = today.getDay() // 0 = zondag, 6 = zaterdag
-  return dayOfWeek !== 0 && dayOfWeek !== 6
+export const isTransferAllowed = async (): Promise<boolean> => {
+  try {
+    // Haal admin instelling op voor weekend transfers
+    const { data: weekendSetting } = await supabase
+      .from('game_settings')
+      .select('value')
+      .eq('key', 'weekend_transfers_allowed')
+      .single()
+    
+    // Als admin weekend transfers heeft ingeschakeld, altijd toestaan
+    if (weekendSetting && weekendSetting.value === 'true') {
+      return true
+    }
+    
+    // Anders, standaard weekend regel toepassen
+    const today = new Date()
+    const dayOfWeek = today.getDay() // 0 = zondag, 6 = zaterdag
+    return dayOfWeek !== 0 && dayOfWeek !== 6
+  } catch (error) {
+    console.error('Error checking transfer allowance:', error)
+    // Bij fout, standaard weekend regel toepassen
+    const today = new Date()
+    const dayOfWeek = today.getDay()
+    return dayOfWeek !== 0 && dayOfWeek !== 6
+  }
 }
 
 // Functie om gebruikerspunten te berekenen

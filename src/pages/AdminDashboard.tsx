@@ -51,12 +51,14 @@ const AdminDashboard: React.FC = () => {
     season_end: string;
     transfer_window_open: string;
     transfer_window_close: string;
+    weekend_transfers_allowed: boolean;
   }>({
     start_deadline: '',
     season_start: '',
     season_end: '',
     transfer_window_open: '',
-    transfer_window_close: ''
+    transfer_window_close: '',
+    weekend_transfers_allowed: false
   });
 
   // Feedback van gebruikers
@@ -302,7 +304,8 @@ const AdminDashboard: React.FC = () => {
         season_start: settings.season_start || '',
         season_end: settings.season_end || '',
         transfer_window_open: settings.transfer_window_open || '',
-        transfer_window_close: settings.transfer_window_close || ''
+        transfer_window_close: settings.transfer_window_close || '',
+        weekend_transfers_allowed: settings.weekend_transfers_allowed === 'true'
       });
     } catch (error) {
       console.error('Error loading game settings:', error);
@@ -343,6 +346,30 @@ const AdminDashboard: React.FC = () => {
       alert('Instelling succesvol bijgewerkt!');
     } catch (error) {
       console.error('Error updating game setting:', error);
+      alert(`Fout bij bijwerken instelling: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
+    }
+  };
+
+  const updateBooleanGameSetting = async (key: string, value: boolean) => {
+    try {
+      console.log('Updating boolean game setting:', { key, value });
+      
+      const { data, error } = await supabase
+        .from('game_settings')
+        .upsert({ key, value: value.toString() }, { onConflict: 'key' })
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Boolean game setting updated successfully:', data);
+
+      await loadGameSettings();
+      alert('Instelling succesvol bijgewerkt!');
+    } catch (error) {
+      console.error('Error updating boolean game setting:', error);
       alert(`Fout bij bijwerken instelling: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
@@ -850,6 +877,39 @@ const AdminDashboard: React.FC = () => {
                        </button>
                      </div>
                    </div>
+
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                       Weekend Transfers Toestaan
+                     </label>
+                     <div className="flex items-center space-x-4">
+                       <label className="flex items-center">
+                         <input
+                           type="radio"
+                           name="weekend_transfers"
+                           value="false"
+                           checked={!gameSettings.weekend_transfers_allowed}
+                           onChange={() => updateBooleanGameSetting('weekend_transfers_allowed', false)}
+                           className="mr-2"
+                         />
+                         <span className="text-sm text-gray-700">Uitgeschakeld (standaard weekend regel)</span>
+                       </label>
+                       <label className="flex items-center">
+                         <input
+                           type="radio"
+                           name="weekend_transfers"
+                           value="true"
+                           checked={gameSettings.weekend_transfers_allowed}
+                           onChange={() => updateBooleanGameSetting('weekend_transfers_allowed', true)}
+                           className="mr-2"
+                         />
+                         <span className="text-sm text-gray-700">Ingeschakeld (altijd transfers toestaan)</span>
+                       </label>
+                     </div>
+                     <p className="text-sm text-gray-500 mt-1">
+                       Test modus: schakel weekend transfers in om alles te kunnen testen
+                     </p>
+                   </div>
                  </div>
                </div>
              </div>
@@ -857,7 +917,7 @@ const AdminDashboard: React.FC = () => {
              {/* Current Status */}
              <div className="bg-white rounded-lg shadow-sm p-6">
                <h2 className="text-xl font-semibold text-gray-900 mb-4">Huidige Status</h2>
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                  <div className="text-center p-4 bg-blue-50 rounded-lg">
                    <div className="text-lg font-semibold text-blue-800">
                      {gameSettings.start_deadline ? new Date(gameSettings.start_deadline).toLocaleDateString('nl-NL') : 'Niet ingesteld'}
@@ -875,6 +935,12 @@ const AdminDashboard: React.FC = () => {
                      {gameSettings.season_end ? new Date(gameSettings.season_end).toLocaleDateString('nl-NL') : 'Niet ingesteld'}
                    </div>
                    <div className="text-purple-600">Seizoen Einde</div>
+                 </div>
+                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                   <div className="text-lg font-semibold text-yellow-800">
+                     {gameSettings.weekend_transfers_allowed ? 'Ingeschakeld' : 'Uitgeschakeld'}
+                   </div>
+                   <div className="text-yellow-600">Weekend Transfers</div>
                  </div>
                </div>
              </div>
