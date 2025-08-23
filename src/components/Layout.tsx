@@ -33,17 +33,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  <div className="container mx-auto px-4 flex items-center justify-between">
                    <div className="flex items-center space-x-2 md:space-x-4">
                      <div className="flex items-center">
-                       <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center mr-2 md:mr-3 p-1">
-                         <img
-                           src="/kosc-logo.png"
-                           alt="KOSC"
-                           className="h-8 w-8 md:h-10 md:w-10 object-contain"
-                         />
-                       </div>
-                       <div className="text-white">
-                         <h1 className="text-lg md:text-2xl font-bold">KOSC</h1>
-                         <p className="text-xs md:text-sm text-gray-300">1933 Ootmarsum</p>
-                       </div>
+                                                <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center mr-2 md:mr-3 p-1">
+                           <img
+                             src="/SpitsenspelLogo.png"
+                             alt="KOSC Spitsenspel"
+                             className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                           />
+                         </div>
+                                                <div className="text-white">
+                           <h1 className="text-lg md:text-2xl font-bold">KOSC Spitsenspel</h1>
+                           <p className="text-xs md:text-sm text-gray-300">1933 Ootmarsum</p>
+                         </div>
                      </div>
                    </div>
 

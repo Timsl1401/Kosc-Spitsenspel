@@ -15,27 +15,50 @@ const Home: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Hoofdsectie */}
-      <div className="kosc-section text-center">
-        <h1 className="kosc-title text-4xl mb-6">
-          KOSC SPITSENSPEL
-        </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-          Welkom bij het officiële KOSC Spitsenspel! Koop en verkoop spelers, 
-          verdien punten en strijd om de hoogste score in de ranglijst.
-        </p>
+      {/* Hoofdsectie met banner */}
+      <div className="relative overflow-hidden rounded-lg shadow-lg">
+        {/* Achtergrond afbeelding */}
+        <div className="absolute inset-0">
+          <img
+            src="/FotoKosc Zwart Wit.jpg"
+            alt="KOSC Voetbalwedstrijd"
+            className="w-full h-full object-cover"
+          />
+          {/* Overlay voor betere leesbaarheid */}
+          <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        </div>
+        
+        {/* Content bovenop de afbeelding */}
+        <div className="relative z-10 p-8 md:p-16 text-center text-white">
+          <div className="max-w-4xl mx-auto">
+            {/* Logo */}
+            <div className="mb-6 flex justify-center">
+              <img
+                src="/SpitsenspelLogo.png"
+                alt="KOSC Spitsenspel Logo"
+                className="h-24 md:h-32 object-contain"
+              />
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+              KOSC SPITSENSPEL
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white">
+              Welkom bij het officiële KOSC Spitsenspel! Koop en verkoop spelers, 
+              verdien punten en strijd om de hoogste score in de ranglijst.
+            </p>
         
         {!user ? (
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
-              className="kosc-button text-lg px-8 py-4"
+              className="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg"
             >
               Start met spelen
             </Link>
             <Link
               to="/login"
-              className="kosc-button bg-gray-600 hover:bg-gray-700 text-lg px-8 py-4"
+              className="bg-white text-gray-800 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
             >
               Inloggen
             </Link>
@@ -44,7 +67,7 @@ const Home: React.FC = () => {
           <div className="flex justify-center">
             <Link
               to="/dashboard"
-              className="kosc-button text-lg px-8 py-4"
+              className="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg"
             >
               Ga naar Dashboard
             </Link>
@@ -54,7 +77,7 @@ const Home: React.FC = () => {
 
       {/* Wat kun je doen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="kosc-card text-center">
+        <div className="bg-white p-6 rounded-lg shadow text-center">
           <div className="text-4xl mb-4">⚽</div>
           <h3 className="text-xl font-semibold mb-3">Spelers Kopen</h3>
           <p className="text-gray-600">
@@ -62,7 +85,7 @@ const Home: React.FC = () => {
           </p>
         </div>
         
-        <div className="kosc-card text-center">
+        <div className="bg-white p-6 rounded-lg shadow text-center">
           <div className="text-4xl mb-4">🏆</div>
           <h3 className="text-xl font-semibold mb-3">Punten Verdienen</h3>
           <p className="text-gray-600">
@@ -70,7 +93,7 @@ const Home: React.FC = () => {
           </p>
         </div>
         
-        <div className="kosc-card text-center">
+        <div className="bg-white p-6 rounded-lg shadow text-center">
           <div className="text-4xl mb-4">🎯</div>
           <h3 className="text-xl font-semibold mb-3">Ranglijst</h3>
           <p className="text-gray-600">
@@ -80,8 +103,8 @@ const Home: React.FC = () => {
       </div>
 
       {/* Hoe werkt het */}
-      <div className="kosc-section">
-        <h2 className="kosc-title">Hoe werkt het?</h2>
+      <div className="bg-white p-8 rounded-lg shadow">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Hoe werkt het?</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="text-center">
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
@@ -126,7 +149,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* Call to Action */}
-      <div className="kosc-section bg-gradient-to-r from-green-500 to-green-600 text-white text-center">
+      <div className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center p-8 rounded-lg shadow">
         <h2 className="text-3xl font-bold mb-4">
           Klaar om te beginnen?
         </h2>
