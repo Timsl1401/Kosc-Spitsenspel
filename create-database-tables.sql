@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS players (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
-  team TEXT NOT NULL CHECK (team IN ('KOSC 1', 'KOSC 2', 'KOSC 3', 'KOSC 4', 'KOSC 5', 'KOSC 6', 'KOSC 7', 'KOSC 8')),
+  team TEXT NOT NULL CHECK (team IN ('KOSC 1', 'KOSC 2', 'KOSC 3', 'KOSC 4', 'KOSC 5', 'KOSC 6', 'KOSC 7', 'KOSC 2 (Zaterdag)', 'KOSC 3 (Zaterdag)')),
   position TEXT NOT NULL,
   price INTEGER NOT NULL CHECK (price > 0),
   goals INTEGER DEFAULT 0,
@@ -106,7 +106,9 @@ INSERT INTO players (name, team, position, price, goals) VALUES
 ('Piet Pietersen', 'KOSC 1', 'Middenvelder', 12000, 3),
 ('Klaas Klaassen', 'KOSC 2', 'Verdediger', 8000, 1),
 ('Henk Henksen', 'KOSC 3', 'Keeper', 5000, 0),
-('Bart Bartsen', 'KOSC 4', 'Aanvaller', 3000, 2)
+('Bart Bartsen', 'KOSC 4', 'Aanvaller', 3000, 2),
+('Mark Markussen', 'KOSC 2 (Zaterdag)', 'Middenvelder', 7000, 2),
+('Tom Tomassen', 'KOSC 3 (Zaterdag)', 'Aanvaller', 4000, 1)
 ON CONFLICT DO NOTHING;
 
 -- Insert sample matches

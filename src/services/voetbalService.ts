@@ -18,7 +18,9 @@ export class VoetbalService {
     try {
       console.log('Zoeken naar KOSC teams op basis van website analyse...');
       
-      // Alleen zaterdag en zondag teams (KOSC 1-7) zoals gevraagd
+      // KOSC teams structuur:
+      // - KOSC 1-7 (zondag teams)
+      // - KOSC 2/3 (zaterdag teams)
       return [
         'KOSC 1',
         'KOSC 2',
@@ -26,7 +28,9 @@ export class VoetbalService {
         'KOSC 4',
         'KOSC 5',
         'KOSC 6',
-        'KOSC 7'
+        'KOSC 7',
+        'KOSC 2 (Zaterdag)',
+        'KOSC 3 (Zaterdag)'
       ];
     } catch (error) {
       console.error('Fout bij zoeken KOSC teams:', error);
