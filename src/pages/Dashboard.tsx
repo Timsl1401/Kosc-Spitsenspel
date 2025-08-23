@@ -446,47 +446,49 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Header Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <div className="kosc-card text-center">
-          <div className="flex items-center justify-center mb-3">
-            <Trophy className="h-6 w-6 md:h-8 md:w-8 text-green-500" />
+      {/* Header Stats - Only show when team tab is active */}
+      {activeTab === 'team' && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className="kosc-card text-center">
+            <div className="flex items-center justify-center mb-3">
+              <Trophy className="h-6 w-6 md:h-8 md:w-8 text-green-500" />
+            </div>
+            <h3 className="text-lg md:text-2xl font-bold text-gray-800">{totalPoints}</h3>
+            <p className="text-sm md:text-base text-gray-600">Totaal Punten</p>
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-800">{totalPoints}</h3>
-          <p className="text-sm md:text-base text-gray-600">Totaal Punten</p>
-        </div>
 
-        <div className="kosc-card text-center">
-          <div className="flex items-center justify-center mb-3">
-            <Users className="h-6 w-6 md:h-8 md:w-8 text-blue-500" />
+          <div className="kosc-card text-center">
+            <div className="flex items-center justify-center mb-3">
+              <Users className="h-6 w-6 md:h-8 md:w-8 text-blue-500" />
+            </div>
+            <h3 className="text-lg md:text-2xl font-bold text-gray-800">{userTeam.length}/15</h3>
+            <p className="text-sm md:text-base text-gray-600">Spelers in Team</p>
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-800">{userTeam.length}/15</h3>
-          <p className="text-sm md:text-base text-gray-600">Spelers in Team</p>
-        </div>
 
-        <div className="kosc-card text-center">
-          <div className="flex items-center justify-center mb-3">
-            <Euro className="h-6 w-6 md:h-8 md:w-8 text-yellow-500" />
+          <div className="kosc-card text-center">
+            <div className="flex items-center justify-center mb-3">
+              <Euro className="h-6 w-6 md:h-8 md:w-8 text-yellow-500" />
+            </div>
+            <h3 className="text-lg md:text-2xl font-bold text-gray-800">€{budget.toLocaleString()}</h3>
+            <p className="text-sm md:text-base text-gray-600">Beschikbaar Budget</p>
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-800">€{budget.toLocaleString()}</h3>
-          <p className="text-sm md:text-base text-gray-600">Beschikbaar Budget</p>
-        </div>
 
-        <div className="kosc-card text-center">
-          <div className="flex items-center justify-center mb-3">
-            <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-purple-500" />
+          <div className="kosc-card text-center">
+            <div className="flex items-center justify-center mb-3">
+              <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-purple-500" />
+            </div>
+            <h3 className="text-lg md:text-2xl font-bold text-gray-800">
+              {isDeadlinePassed ? transfersAfterDeadline : '∞'}
+            </h3>
+            <p className="text-sm md:text-base text-gray-600">
+              {isDeadlinePassed ? 'Transfers Over' : 'Transfers Mogelijk'}
+            </p>
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-800">
-            {isDeadlinePassed ? transfersAfterDeadline : '∞'}
-          </h3>
-          <p className="text-sm md:text-base text-gray-600">
-            {isDeadlinePassed ? 'Transfers Over' : 'Transfers Mogelijk'}
-          </p>
         </div>
-      </div>
+      )}
 
-      {/* Transfer Status */}
-      {!transferAllowed && (
+      {/* Transfer Status - Only show when team tab is active */}
+      {activeTab === 'team' && !transferAllowed && (
         <div className="kosc-section bg-yellow-50 border-l-4 border-yellow-500">
           <div className="flex items-center">
             <AlertTriangle className="h-6 w-6 text-yellow-500 mr-3" />
