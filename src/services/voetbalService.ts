@@ -77,34 +77,44 @@ export class VoetbalService {
     const today = new Date();
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
     const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
     
     return [
       {
         homeTeam: teamName,
-        awayTeam: 'Tegenstander A',
+        awayTeam: 'VV Oldenzaal',
         homeScore: undefined,
         awayScore: undefined,
         matchDate: nextWeek.toISOString(),
-        competition: 'Competitie',
+        competition: 'Eerste Klasse',
         status: 'scheduled'
       },
       {
-        homeTeam: 'Tegenstander B',
+        homeTeam: 'VV Losser',
         awayTeam: teamName,
         homeScore: 2,
         awayScore: 1,
         matchDate: today.toISOString(),
-        competition: 'Competitie',
+        competition: 'Eerste Klasse',
         status: 'finished'
       },
       {
         homeTeam: teamName,
-        awayTeam: 'Tegenstander C',
+        awayTeam: 'VV Weerselo',
         homeScore: 3,
         awayScore: 0,
         matchDate: lastWeek.toISOString(),
-        competition: 'Competitie',
+        competition: 'Eerste Klasse',
         status: 'finished'
+      },
+      {
+        homeTeam: 'VV Denekamp',
+        awayTeam: teamName,
+        homeScore: undefined,
+        awayScore: undefined,
+        matchDate: nextMonth.toISOString(),
+        competition: 'Beker',
+        status: 'scheduled'
       }
     ];
   }

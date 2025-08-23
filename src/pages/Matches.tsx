@@ -25,6 +25,14 @@ export default function Matches() {
     scheduleMatchUpdates(supabase)
   }, [supabase])
 
+  // Effect om mock data toe te voegen als er geen wedstrijden zijn
+  useEffect(() => {
+    if (matches.length === 0 && !loading) {
+      // Voeg mock data toe als er geen wedstrijden zijn
+      updateMatchesFromVoetbal()
+    }
+  }, [matches.length, loading])
+
   const fetchMatches = async () => {
     try {
       const { data, error } = await supabase

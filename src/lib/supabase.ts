@@ -26,6 +26,7 @@ export interface Match {
   match_date: string
   competition: string // 'competitie' of 'beker'
   status: 'scheduled' | 'live' | 'finished'
+  is_competitive: boolean // of de wedstrijd punten telt
   created_at: string
   updated_at: string
 }
