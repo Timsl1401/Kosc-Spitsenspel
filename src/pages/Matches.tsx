@@ -1,137 +1,16 @@
-import { useState, useEffect } from 'react'
-import { useSupabase } from '../contexts/SupabaseContext'
-import { Calendar, Home, ExternalLink, RefreshCw, Trophy } from 'lucide-react'
-import { VoetbalService, scheduleMatchUpdates } from '../services/voetbalService'
-
-interface Match {
-  id: string
-  home_team: string
-  away_team: string
-  home_score: number | null
-  away_score: number | null
-  match_date: string
-  is_competitive: boolean
-}
+import { Calendar, ExternalLink, Trophy } from 'lucide-react'
 
 export default function Matches() {
-  const { supabase } = useSupabase()
-  const [matches, setMatches] = useState<Match[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchMatches()
-    
-    // Start automatische updates van KOSC website
-    scheduleMatchUpdates(supabase)
-  }, [supabase])
-
-  // Effect om echte wedstrijden op te halen als er geen wedstrijden zijn
-  useEffect(() => {
-    // Voorkom infinite loop - alleen uitvoeren bij eerste render
-    const timer = setTimeout(() => {
-      console.log('Eerste render timeout - probeer wedstrijden op te halen...');
-      updateMatchesFromKosc();
-    }, 2000); // Wacht 2 seconden voordat we proberen te updaten
-    
-    return () => clearTimeout(timer);
-  }, []) // Alleen bij eerste render
-
-  const fetchMatches = async () => {
-    try {
-      console.log('Ophalen wedstrijden uit database...');
-      const { data, error } = await supabase
-        .from('matches')
-        .select('*')
-        .order('match_date', { ascending: false })
-
-      if (error) {
-        console.error('Database error bij ophalen wedstrijden:', error);
-        throw error;
-      }
-      
-      console.log('Wedstrijden uit database:', data);
-      setMatches(data || []);
-    } catch (error) {
-      console.error('Error fetching matches:', error);
-      // Zorg ervoor dat loading state wordt gereset bij fout
-      setLoading(false);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const updateMatchesFromKosc = async () => {
-    try {
-      setLoading(true)
-      console.log('Handmatige update van wedstrijden van KOSC website...')
-      
-      // Haal wedstrijden op van KOSC website
-      const koscMatches = await VoetbalService.getAllKoscMatches()
-      
-      if (koscMatches.length > 0) {
-        // Update database
-        await VoetbalService.updateMatchesInDatabase(supabase, koscMatches)
-        
-        // Herlaad wedstrijden uit database
-        await fetchMatches()
-        
-        console.log('Wedstrijden succesvol bijgewerkt van KOSC website')
-      } else {
-        console.log('Geen wedstrijden gevonden op KOSC website')
-        // Toon bericht dat er geen wedstrijden zijn
-        setMatches([])
-      }
-    } catch (error) {
-      console.error('Fout bij bijwerken wedstrijden van KOSC website:', error)
-      // Zorg ervoor dat loading state wordt gereset bij fout
-      setLoading(false)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('nl-NL', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kosc-green-600"></div>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Wedstrijden</h1>
-            <p className="mt-2 text-gray-600">
-              Bekijk alle KOSC wedstrijden en resultaten
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-500">
-              <Calendar className="inline h-4 w-4 mr-1" />
-              {matches.length} wedstrijden
-            </div>
-            <button
-              onClick={updateMatchesFromKosc}
-              disabled={loading}
-              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Update van KOSC website</span>
-            </button>
-          </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Wedstrijden</h1>
+          <p className="mt-2 text-gray-600">
+            Bekijk alle KOSC wedstrijden en resultaten
+          </p>
         </div>
       </div>
 
