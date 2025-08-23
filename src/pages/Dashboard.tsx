@@ -745,9 +745,7 @@ const Dashboard: React.FC = () => {
                               <div className="text-sm font-medium text-gray-900">
                                 {entry.user_email}
                               </div>
-                              <div className="text-sm text-gray-500">
-                                Gebruiker #{entry.rank}
-                              </div>
+
                             </div>
                           </div>
                         </td>
@@ -886,7 +884,7 @@ const Dashboard: React.FC = () => {
                 return (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-green-500">
-                      🗓️ Zaterdag Teams
+                      Zaterdag Teams
                     </h3>
                     <div className="space-y-4">
                       {zaterdagTeams.map((teamName) => {
@@ -981,7 +979,7 @@ const Dashboard: React.FC = () => {
                 return (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-500">
-                      🗓️ Andere Teams
+                      Zondag Teams
                     </h3>
                     <div className="space-y-4">
                       {andereTeams.map((teamName) => {
