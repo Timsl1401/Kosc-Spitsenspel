@@ -195,12 +195,7 @@ const Dashboard: React.FC = () => {
     }
   }, [user]);
 
-  // Controleer of gebruiker voor het eerst inlogt (uitgeschakeld)
-  const checkFirstTimeUser = async () => {
-    // Deze functie is uitgeschakeld om problemen te voorkomen
-    // Gebruikers worden niet meer automatisch naar regels gestuurd
-    return;
-  };
+
 
   const loadUserData = async () => {
     try {
