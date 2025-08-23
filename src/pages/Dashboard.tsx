@@ -24,6 +24,7 @@ const Dashboard: React.FC = () => {
   }>>([]);
   const [activeTab, setActiveTab] = useState<'team' | 'leaderboard'>('team');
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
+  const [hasShownRules, setHasShownRules] = useState(false);
 
 
   const loadTransferDeadline = async () => {
@@ -184,6 +185,9 @@ const Dashboard: React.FC = () => {
 
   const checkFirstTimeUser = async () => {
     try {
+      // Alleen controleren als we de regels nog niet hebben getoond
+      if (hasShownRules) return;
+      
       const { data: existingTeam, error } = await supabase
         .from('user_teams')
         .select('id')
@@ -197,6 +201,7 @@ const Dashboard: React.FC = () => {
       
       // Als gebruiker geen team heeft, stuur naar spelregels
       if (!existingTeam || existingTeam.length === 0) {
+        setHasShownRules(true);
         navigate('/rules');
       }
     } catch (error) {

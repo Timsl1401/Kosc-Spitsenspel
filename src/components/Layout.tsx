@@ -81,12 +81,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                    
                    {/* Desktop navigatie */}
                    <div className="hidden md:flex space-x-1">
-                     <Link
-                       to="/"
-                       className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/' ? 'bg-green-500 text-black' : ''}`}
-                     >
-                       HOME
-                     </Link>
+                     {user ? (
+                       <Link
+                         to="/dashboard"
+                         className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
+                       >
+                         HOME
+                       </Link>
+                     ) : (
+                       <Link
+                         to="/"
+                         className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/' ? 'bg-green-500 text-black' : ''}`}
+                       >
+                         HOME
+                       </Link>
+                     )}
                      <Link
                        to="/matches"
                        className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/matches' ? 'bg-green-500 text-black' : ''}`}
@@ -105,14 +114,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      >
                        REGELS
                      </Link>
-                     {user && (
-                       <Link
-                         to="/dashboard"
-                         className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
-                       >
-                         DASHBOARD
-                       </Link>
-                     )}
                      {user && user.email === 'timsl.tsl@gmail.com' && (
                        <Link
                          to="/admin"
@@ -248,17 +249,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      <div className="flex flex-col items-center space-y-4">
                        {/* KOSC Logo */}
                        <div className="flex items-center justify-center">
-                         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center p-2 mr-3">
-                           <img
-                             src="/kosc-logo.png"
-                             alt="KOSC Logo"
-                             className="h-12 w-12 object-contain"
-                           />
-                         </div>
-                         <div className="text-white">
-                           <h4 className="text-lg font-bold">KOSC</h4>
-                           <p className="text-sm text-gray-300">1933 Ootmarsum</p>
-                         </div>
+                         <img
+                           src="/kosc-logo.png"
+                           alt="KOSC Logo"
+                           className="h-16 w-auto object-contain"
+                         />
                        </div>
                        <p className="text-gray-400 text-sm md:text-base">
                          © 2025 KOSC Spitsenspel. Alle rechten voorbehouden.
