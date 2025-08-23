@@ -121,21 +121,44 @@ const Dashboard: React.FC = () => {
         startDate = `${purchaseDate}T00:00:00Z`;
       }
 
-      // Haal alle doelpunten op voor deze speler vanaf de aankoopdatum
-      const { data: goals, error } = await supabase
+      // Eerst proberen goals uit de goals tabel (individuele goal records)
+      const { data: goals, error: goalsError } = await supabase
         .from('goals')
         .select('*')
         .eq('player_id', playerId)
         .gte('created_at', startDate)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching goals:', error);
+      if (goalsError) {
+        console.error('Error fetching goals from goals table:', goalsError);
+      }
+
+      // Als er goals zijn in de goals tabel, gebruik die
+      if (goals && goals.length > 0) {
+        console.log(`Goals uit goals tabel voor speler ${playerId} vanaf ${startDate}:`, goals.length);
+        return goals.length;
+      }
+
+      // Anders, probeer goals uit de players tabel (totaal aantal)
+      const { data: player, error: playerError } = await supabase
+        .from('players')
+        .select('goals')
+        .eq('id', playerId)
+        .single();
+
+      if (playerError) {
+        console.error('Error fetching player goals:', playerError);
         return 0;
       }
 
-      console.log(`Goals voor speler ${playerId} vanaf ${startDate}:`, goals?.length || 0);
-      return goals?.length || 0;
+      // Als de speler goals heeft, tel die mee (vereenvoudigde aanpak)
+      if (player && player.goals > 0) {
+        console.log(`Goals uit players tabel voor speler ${playerId}:`, player.goals);
+        return player.goals;
+      }
+
+      console.log(`Geen goals gevonden voor speler ${playerId} vanaf ${startDate}`);
+      return 0;
     } catch (error) {
       console.error('Error in getGoalsAfterPurchase:', error);
       return 0;
