@@ -34,7 +34,7 @@ const Home: React.FC = () => {
             {/* Logo */}
             <div className="mb-6 flex justify-center">
               <img
-                src="/SpitsenspelLogo.png"
+                src="/Spitsenspellogo.png"
                 alt="KOSC Spitsenspel Logo"
                 className="h-24 md:h-32 object-contain"
               />
