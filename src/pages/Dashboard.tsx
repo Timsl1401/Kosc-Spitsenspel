@@ -112,10 +112,26 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getGoalsAfterPurchase = (_playerId: string, _purchaseDate: string): number => {
-    // Voorlopig returnen we 0 - later wordt dit gekoppeld aan echte doelpunten tracking
-    // In de toekomst moet dit de goals tabel checken voor doelpunten na de aankoopdatum
-    return 0;
+  const getGoalsAfterPurchase = async (playerId: string, purchaseDate: string): Promise<number> => {
+    try {
+      // Haal alle doelpunten op voor deze speler na de aankoopdatum
+      const { data: goals, error } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('player_id', playerId)
+        .gte('created_at', purchaseDate)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching goals:', error);
+        return 0;
+      }
+
+      return goals?.length || 0;
+    } catch (error) {
+      console.error('Error in getGoalsAfterPurchase:', error);
+      return 0;
+    }
   };
 
   const toggleTeam = (teamName: string) => {
@@ -215,7 +231,7 @@ const Dashboard: React.FC = () => {
       // Groepeer per gebruiker en bereken punten
       const userPoints: { [key: string]: { points: number; teamValue: number; email: string; firstName: string } } = {};
       
-      userTeamsData.forEach(userTeam => {
+      for (const userTeam of userTeamsData) {
         if (userTeam.players) {
           const player = userTeam.players as any;
           const userId = userTeam.user_id;
@@ -225,13 +241,13 @@ const Dashboard: React.FC = () => {
           }
           
           // Bereken punten (alleen voor doelpunten na aankoop)
-          const goalsAfterPurchase = getGoalsAfterPurchase(player.id, userTeam.bought_at);
+          const goalsAfterPurchase = await getGoalsAfterPurchase(player.id, userTeam.bought_at);
           userPoints[userId].points += goalsAfterPurchase * getTeamPoints(player.team);
           
           // Voeg team waarde toe
           userPoints[userId].teamValue += player.price;
         }
-      });
+      }
 
       console.log('User points berekend:', userPoints);
 
@@ -334,17 +350,17 @@ const Dashboard: React.FC = () => {
       setBudget(100000 - currentTeamValue);
 
       // Calculate total points - ONLY for goals scored AFTER purchase
-      const points = teamData?.reduce((sum, item) => {
+      let totalPoints = 0;
+      for (const item of teamData || []) {
         const player = playersData?.find(p => p.id === item.player_id);
         if (player && item.bought_at) {
           // Get goals scored after purchase date
-          const goalsAfterPurchase = getGoalsAfterPurchase(player.id, item.bought_at);
-          return sum + (goalsAfterPurchase * getTeamPoints(player.team));
+          const goalsAfterPurchase = await getGoalsAfterPurchase(player.id, item.bought_at);
+          totalPoints += goalsAfterPurchase * getTeamPoints(player.team);
         }
-        return sum;
-      }, 0) || 0;
+      }
 
-      setTotalPoints(points);
+      setTotalPoints(totalPoints);
 
       // Note: transfers are now limited to max 3 players in team
 
