@@ -432,27 +432,205 @@ const AdminDashboard: React.FC = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const viewUserTeam = (userId: string) => {
-    // Toon gedetailleerde team informatie voor deze gebruiker
-    const user = users.find(u => u.id === userId);
-    if (user) {
-      alert(`Team van ${user.full_name}:\n\n` +
-            `Aantal spelers: ${user.team_count}/15\n` +
-            `Team waarde: €${user.team_value.toLocaleString()}\n` +
-            `Totaal punten: ${user.total_points} pt\n` +
-            `Beschikbaar budget: €${(100000 - user.team_value).toLocaleString()}`);
+  const viewUserTeam = async (userId: string) => {
+    try {
+      // Haal gedetailleerde team informatie op voor deze gebruiker
+      const { data: userTeams, error } = await supabase
+        .from('user_teams')
+        .select(`
+          bought_at,
+          players (
+            id,
+            name,
+            team,
+            position,
+            goals,
+            price
+          )
+        `)
+        .eq('user_id', userId)
+        .is('sold_at', null);
+
+      if (error) throw error;
+
+      const user = users.find(u => u.id === userId);
+      if (!user || !userTeams) return;
+
+      // Bereken punten per speler
+      const teamDetails = userTeams.map(userTeam => {
+        const player = userTeam.players as any;
+        const goalsForPlayer = player.goals || 0;
+        const pointsForPlayer = goalsForPlayer * getTeamPoints(player.team);
+        
+        return {
+          name: player.name,
+          team: player.team,
+          position: player.position,
+          goals: goalsForPlayer,
+          points: pointsForPlayer,
+          price: player.price,
+          boughtAt: new Date(userTeam.bought_at).toLocaleDateString('nl-NL')
+        };
+      });
+
+      // Sorteer op punten (hoogste eerst)
+      teamDetails.sort((a, b) => b.points - a.points);
+
+      // Maak gedetailleerde team weergave
+      let teamInfo = `Team van ${user.full_name}\n\n`;
+      teamInfo += `Aantal spelers: ${user.team_count}/15\n`;
+      teamInfo += `Team waarde: €${user.team_value.toLocaleString()}\n`;
+      teamInfo += `Totaal punten: ${user.total_points} pt\n`;
+      teamInfo += `Beschikbaar budget: €${(100000 - user.team_value).toLocaleString()}\n\n`;
+      
+      teamInfo += `Spelers:\n`;
+      teamInfo += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      
+      teamDetails.forEach((player, index) => {
+        teamInfo += `${index + 1}. ${player.name} (${player.team})\n`;
+        teamInfo += `   Positie: ${player.position}\n`;
+        teamInfo += `   Doelpunten: ${player.goals}\n`;
+        teamInfo += `   Punten: ${player.points} pt\n`;
+        teamInfo += `   Prijs: €${player.price.toLocaleString()}\n`;
+        teamInfo += `   Gekocht: ${player.boughtAt}\n\n`;
+      });
+
+      // Toon in een grotere popup of console voor betere leesbaarheid
+      console.log('Team Details:', teamInfo);
+      alert(teamInfo);
+      
+    } catch (error) {
+      console.error('Error viewing user team:', error);
+      alert('Fout bij ophalen team informatie!');
     }
   };
 
   const editUser = (userId: string) => {
     // Bewerk gebruiker functionaliteit
     const user = users.find(u => u.id === userId);
-    if (user) {
-      const newName = prompt(`Bewerk naam voor ${user.full_name}:`, user.full_name);
+    if (!user) return;
+
+    // Maak een uitgebreide bewerkingsinterface
+    const editForm = `
+Bewerk Gebruiker: ${user.full_name}
+
+1. Naam wijzigen:
+   Huidige naam: ${user.full_name}
+   Nieuwe naam: ________________
+
+2. Team beheren:
+   Huidige team waarde: €${user.team_value.toLocaleString()}
+   Huidige aantal spelers: ${user.team_count}/15
+
+3. Punten beheren:
+   Huidige punten: ${user.total_points} pt
+
+4. Acties:
+   - Spelers toevoegen/verwijderen
+   - Punten aanpassen
+   - Team waarde wijzigen
+
+Type 'NAAM' gevolgd door de nieuwe naam om de naam te wijzigen.
+Type 'SPELER' om spelers te beheren.
+Type 'PUNTEN' om punten aan te passen.
+Type 'ANNULEER' om te stoppen.
+`;
+
+    const action = prompt(editForm, 'NAAM');
+    
+    if (action === 'ANNULEER') return;
+    
+    if (action === 'NAAM') {
+      const newName = prompt(`Nieuwe naam voor ${user.full_name}:`, user.full_name);
       if (newName && newName.trim() !== '') {
-        // Update gebruiker in database
         updateUserProfile(userId, newName.trim());
       }
+    } else if (action === 'SPELER') {
+      const spelerAction = prompt(`
+Speler beheren voor ${user.full_name}:
+
+1. Type 'TOEVOEGEN' om een speler toe te voegen
+2. Type 'VERWIJDEREN' om een speler te verwijderen
+3. Type 'BEKIJK' om huidige spelers te zien
+4. Type 'ANNULEER' om te stoppen
+      `, 'BEKIJK');
+      
+      if (spelerAction === 'BEKIJK') {
+        viewUserTeam(userId);
+      } else if (spelerAction === 'TOEVOEGEN') {
+        alert('Speler toevoegen functionaliteit wordt nog geïmplementeerd.');
+      } else if (spelerAction === 'VERWIJDEREN') {
+        alert('Speler verwijderen functionaliteit wordt nog geïmplementeerd.');
+      }
+    } else if (action === 'PUNTEN') {
+      const puntenAction = prompt(`
+Punten beheren voor ${user.full_name}:
+
+1. Type 'AANPASSEN' om punten handmatig aan te passen
+2. Type 'HERBERKENEN' om punten automatisch te herberekenen
+3. Type 'ANNULEER' om te stoppen
+      `, 'HERBERKENEN');
+      
+      if (puntenAction === 'HERBERKENEN') {
+        recalculateUserPoints(userId);
+      } else if (puntenAction === 'AANPASSEN') {
+        alert('Handmatige punten aanpassing wordt nog geïmplementeerd.');
+      }
+    }
+  };
+
+  const recalculateUserPoints = async (userId: string) => {
+    try {
+      // Haal alle team data op voor deze gebruiker
+      const { data: userTeams, error } = await supabase
+        .from('user_teams')
+        .select(`
+          bought_at,
+          players (
+            id,
+            name,
+            team,
+            goals,
+            price
+          )
+        `)
+        .eq('user_id', userId)
+        .is('sold_at', null);
+
+      if (error) throw error;
+
+      // Herbereken punten
+      let totalPoints = 0;
+      let teamValue = 0;
+      let teamCount = 0;
+
+      userTeams?.forEach(userTeam => {
+        const player = userTeam.players as any;
+        const goalsForPlayer = player.goals || 0;
+        const pointsForPlayer = goalsForPlayer * getTeamPoints(player.team);
+        
+        totalPoints += pointsForPlayer;
+        teamValue += player.price || 0;
+        teamCount++;
+      });
+
+      // Update lokale state
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId 
+            ? { ...user, total_points: totalPoints, team_value: teamValue, team_count: teamCount }
+            : user
+        )
+      );
+
+      alert(`Punten herberekend voor ${users.find(u => u.id === userId)?.full_name}:\n\n` +
+            `Nieuwe totaal punten: ${totalPoints} pt\n` +
+            `Nieuwe team waarde: €${teamValue.toLocaleString()}\n` +
+            `Aantal spelers: ${teamCount}/15`);
+
+    } catch (error) {
+      console.error('Error recalculating user points:', error);
+      alert('Fout bij herberekenen punten!');
     }
   };
 
