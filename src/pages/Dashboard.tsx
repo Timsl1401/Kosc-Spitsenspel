@@ -114,12 +114,19 @@ const Dashboard: React.FC = () => {
 
   const getGoalsAfterPurchase = async (playerId: string, purchaseDate: string): Promise<number> => {
     try {
-      // Haal alle doelpunten op voor deze speler na de aankoopdatum
+      // Converteer aankoopdatum naar start van de dag als er geen tijd is
+      let startDate = purchaseDate;
+      if (!purchaseDate.includes('T')) {
+        // Als er geen tijd is, gebruik start van de dag (00:00:00)
+        startDate = `${purchaseDate}T00:00:00Z`;
+      }
+
+      // Haal alle doelpunten op voor deze speler vanaf de aankoopdatum
       const { data: goals, error } = await supabase
         .from('goals')
         .select('*')
         .eq('player_id', playerId)
-        .gte('created_at', purchaseDate)
+        .gte('created_at', startDate)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -127,6 +134,7 @@ const Dashboard: React.FC = () => {
         return 0;
       }
 
+      console.log(`Goals voor speler ${playerId} vanaf ${startDate}:`, goals?.length || 0);
       return goals?.length || 0;
     } catch (error) {
       console.error('Error in getGoalsAfterPurchase:', error);
