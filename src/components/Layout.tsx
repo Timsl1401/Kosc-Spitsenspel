@@ -32,11 +32,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      <div className="flex justify-center items-center w-full">
                        <div className="text-center w-full">
                          <div className="flex justify-center">
-                           <img
-                             src="/Spitsenspellogowit.png"
-                             alt="KOSC Spitsenspel"
-                             className="h-12 md:h-16 lg:h-20 object-contain"
-                           />
+                           <div className="bg-white rounded-full p-2 md:p-3 lg:p-4">
+                             <img
+                               src="/Spitsenspellogo.png"
+                               alt="KOSC Spitsenspel"
+                               className="h-10 md:h-14 lg:h-18 object-contain"
+                             />
+                           </div>
                          </div>
                          <div className="text-white font-bold text-lg md:text-xl lg:text-2xl mt-2">
                            KOSC SPITSENSPEL
