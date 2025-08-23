@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Player, UserTeam, getTeamPoints, isTransferAllowed } from '../lib/supabase';
-import { Users, Trophy, Euro, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Users, Trophy, Euro, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -450,6 +450,7 @@ const Dashboard: React.FC = () => {
 
       // Reload data
       await loadUserData();
+      await loadLeaderboard(); // Update ranglijst na kopen speler
       alert(`${player.name} is toegevoegd aan je team!`);
 
     } catch (error: any) {
@@ -494,6 +495,7 @@ const Dashboard: React.FC = () => {
 
       // Reload data
       await loadUserData();
+      await loadLeaderboard(); // Update ranglijst na verkopen speler
       alert(`${player.name} is succesvol verkocht!`);
 
     } catch (error) {
@@ -689,6 +691,13 @@ const Dashboard: React.FC = () => {
               <Trophy className="h-16 w-16 mx-auto mb-4 text-yellow-300" />
               <h2 className="text-3xl font-bold mb-2">Top 10 Ranglijst</h2>
               <p className="text-green-100">De beste spelers van het KOSC Spitsenspel</p>
+              <button
+                onClick={loadLeaderboard}
+                className="mt-4 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors flex items-center mx-auto"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Vernieuwen
+              </button>
             </div>
           </div>
 
