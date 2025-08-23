@@ -660,93 +660,96 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Available Players by Team */}
-      <div className="kosc-section">
-        <h2 className="kosc-title text-2xl mb-6">Beschikbare Spelers per Team</h2>
-        
-        <div className="space-y-4">
-          {getTeamNames().map((teamName) => {
-            const playersInTeam = getAvailablePlayersByTeam()[teamName] || [];
-            const isExpanded = expandedTeams.has(teamName);
-            
-            return (
-              <div key={teamName} className="border border-gray-200 rounded-lg overflow-hidden">
-                {/* Team Header - Clickable */}
-                <button
-                  onClick={() => toggleTeam(teamName)}
-                  className="w-full bg-gray-50 hover:bg-gray-100 px-6 py-4 text-left transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <h3 className="text-lg font-semibold text-gray-900">{teamName}</h3>
-                      <span className="text-sm text-gray-600">
-                        {playersInTeam.length} beschikbare speler{playersInTeam.length !== 1 ? 's' : ''}
-                      </span>
+      {/* Available Players by Team - Only show when team tab is active */}
+      {activeTab === 'team' && (
+        <div className="kosc-section">
+          <h2 className="kosc-title text-2xl mb-6">Beschikbare Spelers per Team</h2>
+          
+          <div className="space-y-4">
+            {getTeamNames().map((teamName) => {
+              const playersInTeam = getAvailablePlayersByTeam()[teamName] || [];
+              const isExpanded = expandedTeams.has(teamName);
+              
+              return (
+                <div key={teamName} className="border border-gray-200 rounded-lg overflow-hidden">
+                  {/* Team Header - Clickable */}
+                  <button
+                    onClick={() => toggleTeam(teamName)}
+                    className="w-full bg-gray-50 hover:bg-gray-100 px-6 py-4 text-left transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <h3 className="text-lg font-semibold text-gray-900">{teamName}</h3>
+                        <span className="text-sm text-gray-600">
+                          {playersInTeam.length} beschikbare speler{playersInTeam.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-green-600">
+                          {getTeamPoints(teamName)} pt per doelpunt
+                        </span>
+                        <svg
+                          className={`w-5 h-5 text-gray-500 transform transition-transform ${
+                            isExpanded ? 'rotate-180' : ''
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-green-600">
-                        {getTeamPoints(teamName)} pt per doelpunt
-                      </span>
-                      <svg
-                        className={`w-5 h-5 text-gray-500 transform transition-transform ${
-                          isExpanded ? 'rotate-180' : ''
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
-                </button>
-                
-                {/* Team Players - Expandable */}
-                {isExpanded && (
-                  <div className="bg-white border-t border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                      {playersInTeam.map((player) => (
-                        <div key={player.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <h4 className="font-semibold text-gray-900">{player.name}</h4>
-                              <p className="text-sm text-gray-600">{player.position}</p>
+                  </button>
+                  
+                  {/* Team Players - Expandable */}
+                  {isExpanded && (
+                    <div className="bg-white border-t border-gray-200">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                        {playersInTeam.map((player) => (
+                          <div key={player.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-semibold text-gray-900">{player.name}</h4>
+                                <p className="text-sm text-gray-600">{player.position}</p>
+                              </div>
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                {getTeamPoints(player.team)} pt
+                              </span>
                             </div>
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                              {getTeamPoints(player.team)} pt
-                            </span>
+                            
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="text-sm text-gray-600">{player.team}</span>
+                              <span className="text-sm font-medium text-gray-900">€{player.price.toLocaleString()}</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">
+                                {player.goals} doelpunt{player.goals !== 1 ? 'en' : ''}
+                              </span>
+                              <button
+                                onClick={() => buyPlayer(player)}
+                                disabled={!isTransferAllowed() || budget < player.price || userTeam.length >= 15}
+                                className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Koop
+                              </button>
+                            </div>
                           </div>
-                          
-                          <div className="flex justify-between items-center mb-3">
-                            <span className="text-sm text-gray-600">{player.team}</span>
-                            <span className="text-sm font-medium text-gray-900">€{player.price.toLocaleString()}</span>
-                          </div>
-                          
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">
-                              {player.goals} doelpunt{player.goals !== 1 ? 'en' : ''}
-                            </span>
-                                                         <button
-                               onClick={() => buyPlayer(player)}
-                               disabled={!isTransferAllowed() || budget < player.price || userTeam.length >= 15}
-                               className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                             >
-                               Koop
-                             </button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Game Rules Summary */}
-      <div className="kosc-section bg-gray-50">
+      {/* Game Rules Summary - Only show when team tab is active */}
+      {activeTab === 'team' && (
+        <div className="kosc-section bg-gray-50">
         <h2 className="kosc-title text-2xl mb-6">Spelregels Overzicht</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -771,6 +774,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };
