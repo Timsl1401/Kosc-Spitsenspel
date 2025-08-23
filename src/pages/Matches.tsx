@@ -28,8 +28,8 @@ export default function Matches() {
   // Effect om echte wedstrijden op te halen als er geen wedstrijden zijn
   useEffect(() => {
     if (matches.length === 0 && !loading) {
-      // Probeer echte wedstrijden op te halen van voetbal.nl
-      updateMatchesFromVoetbal()
+      // Probeer echte wedstrijden op te halen van KOSC website
+      updateMatchesFromKosc()
     }
   }, [matches.length, loading])
 
@@ -49,29 +49,29 @@ export default function Matches() {
     }
   }
 
-  const updateMatchesFromVoetbal = async () => {
+  const updateMatchesFromKosc = async () => {
     try {
       setLoading(true)
-      console.log('Handmatige update van wedstrijden van voetbal.nl...')
+      console.log('Handmatige update van wedstrijden van KOSC website...')
       
-      // Haal wedstrijden op van voetbal.nl
-      const voetbalMatches = await VoetbalService.getAllKoscMatches()
+      // Haal wedstrijden op van KOSC website
+      const koscMatches = await VoetbalService.getAllKoscMatches()
       
-      if (voetbalMatches.length > 0) {
+      if (koscMatches.length > 0) {
         // Update database
-        await VoetbalService.updateMatchesInDatabase(supabase, voetbalMatches)
+        await VoetbalService.updateMatchesInDatabase(supabase, koscMatches)
         
         // Herlaad wedstrijden uit database
         await fetchMatches()
         
-        console.log('Wedstrijden succesvol bijgewerkt van voetbal.nl')
+        console.log('Wedstrijden succesvol bijgewerkt van KOSC website')
       } else {
-        console.log('Geen wedstrijden gevonden op voetbal.nl')
+        console.log('Geen wedstrijden gevonden op KOSC website')
         // Toon bericht dat er geen wedstrijden zijn
         setMatches([])
       }
     } catch (error) {
-      console.error('Fout bij bijwerken wedstrijden van voetbal.nl:', error)
+      console.error('Fout bij bijwerken wedstrijden van KOSC website:', error)
     } finally {
       setLoading(false)
     }
@@ -111,12 +111,12 @@ export default function Matches() {
               {matches.length} wedstrijden
             </div>
             <button
-              onClick={updateMatchesFromVoetbal}
+              onClick={updateMatchesFromKosc}
               disabled={loading}
               className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Update van voetbal.nl</span>
+              <span>Update van KOSC website</span>
             </button>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function Matches() {
               Er zijn momenteel geen wedstrijden gepland voor de KOSC teams.
             </p>
             <button
-              onClick={updateMatchesFromVoetbal}
+              onClick={updateMatchesFromKosc}
               disabled={loading}
               className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg transition-colors"
             >

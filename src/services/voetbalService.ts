@@ -15,29 +15,30 @@ export interface VoetbalMatch {
 export class VoetbalService {
   private static readonly BASE_URL = 'https://www.voetbal.nl';
   
-  // Zoek KOSC teams op voetbal.nl
+  // Zoek KOSC teams op basis van echte website analyse
   static async searchKoscTeams(): Promise<string[]> {
     try {
-      console.log('Zoeken naar KOSC teams op voetbal.nl...');
+      console.log('Zoeken naar KOSC teams op basis van website analyse...');
       
-      // Echte KOSC teams (zaterdag en zondag)
+      // Echte KOSC teams gebaseerd op kosc.nl/teams
       return [
-        'KOSC 1 (Zaterdag)',
-        'KOSC 2 (Zaterdag)', 
+        'KOSC 1',
+        'KOSC 2',
+        'KOSC 2 (Zaterdag)',
+        'KOSC 3',
         'KOSC 3 (Zaterdag)',
-        'KOSC 4 (Zaterdag)',
-        'KOSC 5 (Zaterdag)',
-        'KOSC 6 (Zaterdag)',
-        'KOSC 7 (Zaterdag)',
-        'KOSC 8 (Zaterdag)',
-        'KOSC 1 (Zondag)',
-        'KOSC 2 (Zondag)',
-        'KOSC 3 (Zondag)',
-        'KOSC 4 (Zondag)',
-        'KOSC 5 (Zondag)',
-        'KOSC 6 (Zondag)',
-        'KOSC 7 (Zondag)',
-        'KOSC 8 (Zondag)'
+        'KOSC 4',
+        'KOSC 5',
+        'KOSC 6',
+        'KOSC 7',
+        'KOSC Futsal 1',
+        'KOSC Futsal 2',
+        'KOSC 35+ 1',
+        'KOSC 35+ 2',
+        'KOSC 35+ 3',
+        'KOSC 45+ 1',
+        'KOSC Futsal Recr',
+        'KOSC VR30+ 1'
       ];
     } catch (error) {
       console.error('Fout bij zoeken KOSC teams:', error);
@@ -48,10 +49,10 @@ export class VoetbalService {
   // Haal wedstrijden op voor een specifiek team
   static async getTeamMatches(teamName: string): Promise<VoetbalMatch[]> {
     try {
-      console.log(`Ophalen wedstrijden voor ${teamName} van voetbal.nl...`);
+      console.log(`Ophalen wedstrijden voor ${teamName} van KOSC website...`);
       
-      // Probeer echte wedstrijden op te halen van voetbal.nl
-      const matches = await this.scrapeVoetbalNl(teamName);
+      // Probeer echte wedstrijden op te halen van KOSC website
+      const matches = await this.scrapeKoscWebsite(teamName);
       
       if (matches.length > 0) {
         return matches;
@@ -66,10 +67,14 @@ export class VoetbalService {
     }
   }
 
-  // Probeer echte wedstrijden op te halen van voetbal.nl
-  static async scrapeVoetbalNl(teamName: string): Promise<VoetbalMatch[]> {
+  // Probeer echte wedstrijden op te halen van KOSC website
+  static async scrapeKoscWebsite(teamName: string): Promise<VoetbalMatch[]> {
     try {
-      console.log(`Scraping voetbal.nl voor ${teamName}...`);
+      console.log(`Scraping KOSC website voor ${teamName}...`);
+      
+      // Probeer wedstrijden op te halen van de KOSC team pagina
+      const teamUrl = `https://www.kosc.nl/team/${teamName.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}`;
+      console.log(`Probeer team pagina: ${teamUrl}`);
       
       // Voor nu returnen we lege array omdat echte scraping server-side moet gebeuren
       // Dit is een placeholder voor toekomstige implementatie
@@ -77,12 +82,12 @@ export class VoetbalService {
       return [];
       
       // Toekomstige implementatie:
-      // 1. Zoek team op voetbal.nl
-      // 2. Haal wedstrijdschema op
+      // 1. Haal team pagina op van kosc.nl
+      // 2. Zoek naar wedstrijd informatie
       // 3. Parse HTML voor wedstrijd data
       // 4. Return gestructureerde wedstrijden
     } catch (error) {
-      console.error(`Fout bij scraping voetbal.nl voor ${teamName}:`, error);
+      console.error(`Fout bij scraping KOSC website voor ${teamName}:`, error);
       return [];
     }
   }
