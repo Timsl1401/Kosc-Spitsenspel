@@ -900,7 +900,8 @@ Punten beheren voor ${user.full_name}:
                     <option value="KOSC 7">KOSC 7</option>
                   </optgroup>
                   <optgroup label="Zaterdag Teams">
-                    <option value="KOSC 2/3">KOSC 2/3</option>
+                    <option value="KOSC 2 Zaterdag">KOSC 2 Zaterdag</option>
+                    <option value="KOSC 3 Zaterdag">KOSC 3 Zaterdag</option>
                   </optgroup>
                 </select>
                 <select
@@ -984,7 +985,8 @@ Punten beheren voor ${user.full_name}:
                                 <option value="KOSC 7">KOSC 7</option>
                               </optgroup>
                               <optgroup label="Zaterdag Teams">
-                                <option value="KOSC 2/3">KOSC 2/3</option>
+                                <option value="KOSC 2 Zaterdag">KOSC 2 Zaterdag</option>
+                                <option value="KOSC 3 Zaterdag">KOSC 3 Zaterdag</option>
                               </optgroup>
                             </select>
                           ) : (
