@@ -1631,43 +1631,7 @@ Punten beheren voor ${user.full_name}:
               )}
             </div>
 
-            {/* Gebruikers Statistieken */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Gebruikers Statistieken
-                {searchTerm && (
-                  <span className="text-sm font-normal text-gray-500 ml-2">
-                    (Gefilterd: {filteredUsers.length} van {users.length})
-                  </span>
-                )}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{filteredUsers.length}</div>
-                  <div className="text-blue-800">
-                    {searchTerm ? 'Gevonden Gebruikers' : 'Totaal Gebruikers'}
-                  </div>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {filteredUsers.length > 0 ? Math.round(filteredUsers.reduce((sum, user) => sum + user.total_points, 0)) : 0}
-                  </div>
-                  <div className="text-green-800">Totaal Punten</div>
-                </div>
-                <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {filteredUsers.length > 0 ? Math.round(filteredUsers.reduce((sum, user) => sum + user.team_count, 0) / filteredUsers.length * 10) / 10 : 0}
-                  </div>
-                  <div className="text-yellow-800">Gem. Spelers per Team</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {filteredUsers.length > 0 ? Math.round(filteredUsers.reduce((sum, user) => sum + user.team_value, 0) / filteredUsers.length) : 0}
-                  </div>
-                  <div className="text-purple-800">Gem. Team Waarde</div>
-                </div>
-              </div>
-            </div>
+
           </div>
         )}
       </div>
