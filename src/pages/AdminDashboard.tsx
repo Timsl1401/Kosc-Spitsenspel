@@ -414,7 +414,12 @@ const AdminDashboard: React.FC = () => {
         };
       });
 
-      setUsers(usersData);
+      // Sorteer gebruikers op alfabetische volgorde (naam)
+      const sortedUsersData = usersData.sort((a, b) => 
+        a.full_name.localeCompare(b.full_name, 'nl', { sensitivity: 'base' })
+      );
+
+      setUsers(sortedUsersData);
     } catch (error) {
       console.error('Error loading users:', error);
     }
