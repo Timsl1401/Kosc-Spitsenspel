@@ -109,16 +109,21 @@ export class VoetbalService {
       console.log('Ophalen van alle KOSC wedstrijden...');
       
       const teams = await this.searchKoscTeams();
+      console.log(`Teams gevonden: ${teams.join(', ')}`);
+      
       const allMatches: VoetbalMatch[] = [];
       
       for (const team of teams) {
         try {
           const teamMatches = await this.getTeamMatches(team);
+          console.log(`${team}: ${teamMatches.length} wedstrijden`);
           allMatches.push(...teamMatches);
         } catch (error) {
           console.error(`Fout bij ophalen wedstrijden voor ${team}:`, error);
         }
       }
+      
+      console.log(`Totaal wedstrijden voor alle teams: ${allMatches.length}`);
       
       // Verwijder duplicaten en sorteer op datum
       const uniqueMatches = this.removeDuplicateMatches(allMatches);
@@ -134,17 +139,19 @@ export class VoetbalService {
     }
   }
 
-  // Verwijder duplicaat wedstrijden
+  // Verwijder duplicaat wedstrijden (verbeterde logica)
   private static removeDuplicateMatches(matches: VoetbalMatch[]): VoetbalMatch[] {
     const uniqueMatches = new Map<string, VoetbalMatch>();
     
     matches.forEach(match => {
-      const key = `${match.homeTeam}_${match.awayTeam}_${match.matchDate}`;
+      // Maak key minder specifiek om meer wedstrijden te behouden
+      const key = `${match.homeTeam}_${match.awayTeam}`;
       if (!uniqueMatches.has(key)) {
         uniqueMatches.set(key, match);
       }
     });
     
+    console.log(`Duplicaten verwijderd: ${matches.length} -> ${uniqueMatches.size} wedstrijden`);
     return Array.from(uniqueMatches.values());
   }
 
@@ -163,12 +170,18 @@ export class VoetbalService {
       'VV Albergen', 'VV Vriezenveen', 'VV Rijssen', 'VV Enter'
     ];
     
-    // Random selectie van tegenstanders (zonder duplicaten)
-    const availableTeams = [...twentseTeams];
-    const randomTeam1 = availableTeams.splice(Math.floor(Math.random() * availableTeams.length), 1)[0];
-    const randomTeam2 = availableTeams.splice(Math.floor(Math.random() * availableTeams.length), 1)[0];
-    const randomTeam3 = availableTeams.splice(Math.floor(Math.random() * availableTeams.length), 1)[0];
-    const randomTeam4 = availableTeams.splice(Math.floor(Math.random() * availableTeams.length), 1)[0];
+    // Gebruik team-specifieke seed voor consistente resultaten
+    const teamSeed = teamName.charCodeAt(0) + teamName.charCodeAt(teamName.length - 1);
+    const seededRandom = (min: number, max: number) => {
+      const x = Math.sin(teamSeed) * 10000;
+      return min + (x - Math.floor(x)) * (max - min);
+    };
+    
+    // Selecteer tegenstanders op basis van team seed
+    const randomTeam1 = twentseTeams[Math.floor(seededRandom(0, twentseTeams.length))];
+    const randomTeam2 = twentseTeams[Math.floor(seededRandom(0, twentseTeams.length))];
+    const randomTeam3 = twentseTeams[Math.floor(seededRandom(0, twentseTeams.length))];
+    const randomTeam4 = twentseTeams[Math.floor(seededRandom(0, twentseTeams.length))];
     
     // Alleen toekomstige wedstrijden (geen wedstrijden uit het verleden)
     return [
