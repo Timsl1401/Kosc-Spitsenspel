@@ -92,6 +92,8 @@ const Dashboard: React.FC = () => {
 
   const loadLeaderboard = async () => {
     try {
+      console.log('Laden ranglijst...');
+      
       // Haal alle gebruikers op met hun teams en gebruikersgegevens
       const { data: userTeamsData, error: userTeamsError } = await supabase
         .from('user_teams')
@@ -109,12 +111,24 @@ const Dashboard: React.FC = () => {
         `)
         .is('sold_at', null);
 
-      if (userTeamsError) throw userTeamsError;
+      if (userTeamsError) {
+        console.error('Database error bij laden ranglijst:', userTeamsError);
+        throw userTeamsError;
+      }
+
+      console.log('User teams data:', userTeamsData);
+
+      // Als er geen teams zijn, toon lege ranglijst
+      if (!userTeamsData || userTeamsData.length === 0) {
+        console.log('Geen teams gevonden in database');
+        setLeaderboard([]);
+        return;
+      }
 
       // Groepeer per gebruiker en bereken punten
       const userPoints: { [key: string]: { points: number; teamValue: number; email: string; firstName: string } } = {};
       
-      userTeamsData?.forEach(userTeam => {
+      userTeamsData.forEach(userTeam => {
         if (userTeam.players) {
           const player = userTeam.players as any;
           const userId = userTeam.user_id;
@@ -132,8 +146,9 @@ const Dashboard: React.FC = () => {
         }
       });
 
+      console.log('User points berekend:', userPoints);
+
       // Probeer gebruikersnamen op te halen uit de huidige gebruiker en andere beschikbare data
-      // Voor nu gebruiken we de email als naam, later kan dit uitgebreid worden met een profielen tabel
       Object.keys(userPoints).forEach(userId => {
         if (userPoints[userId]) {
           // Als dit de huidige gebruiker is, gebruik dan hun naam
@@ -162,6 +177,7 @@ const Dashboard: React.FC = () => {
           rank: index + 1
         }));
 
+      console.log('Finale ranglijst:', leaderboardArray);
       setLeaderboard(leaderboardArray);
     } catch (error) {
       console.error('Fout bij laden ranglijst:', error);

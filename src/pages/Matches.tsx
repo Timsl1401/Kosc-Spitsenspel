@@ -29,28 +29,34 @@ export default function Matches() {
   useEffect(() => {
     // Voorkom infinite loop - alleen uitvoeren bij eerste render
     const timer = setTimeout(() => {
-      if (matches.length === 0 && !loading) {
-        console.log('Geen wedstrijden gevonden, probeer KOSC website update...')
-        updateMatchesFromKosc()
-      }
-    }, 1000); // Wacht 1 seconde voordat we proberen te updaten
+      console.log('Eerste render timeout - probeer wedstrijden op te halen...');
+      updateMatchesFromKosc();
+    }, 2000); // Wacht 2 seconden voordat we proberen te updaten
     
     return () => clearTimeout(timer);
   }, []) // Alleen bij eerste render
 
   const fetchMatches = async () => {
     try {
+      console.log('Ophalen wedstrijden uit database...');
       const { data, error } = await supabase
         .from('matches')
         .select('*')
         .order('match_date', { ascending: false })
 
-      if (error) throw error
-      setMatches(data || [])
+      if (error) {
+        console.error('Database error bij ophalen wedstrijden:', error);
+        throw error;
+      }
+      
+      console.log('Wedstrijden uit database:', data);
+      setMatches(data || []);
     } catch (error) {
-      console.error('Error fetching matches:', error)
+      console.error('Error fetching matches:', error);
+      // Zorg ervoor dat loading state wordt gereset bij fout
+      setLoading(false);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
