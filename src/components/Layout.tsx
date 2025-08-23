@@ -28,36 +28,32 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  </div>
                </div>
 
-                     {/* Hoofdheader met logo */}
+                                          {/* Hoofdheader met groot transparant logo */}
                <div className="kosc-header">
-                 <div className="container mx-auto px-4 flex items-center justify-between">
-                   <div className="flex items-center space-x-2 md:space-x-4">
-                     <div className="flex items-center">
-                                                <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center mr-2 md:mr-3 p-1">
-                           <img
-                             src="/Spitsenspellogo.png"
-                             alt="KOSC Spitsenspel"
-                             className="h-8 w-8 md:h-10 md:w-10 object-contain"
-                           />
-                         </div>
-                                                <div className="text-white">
-                           <h1 className="text-lg md:text-2xl font-bold">KOSC Spitsenspel</h1>
-                           <p className="text-xs md:text-sm text-gray-300">1933 Ootmarsum</p>
-                         </div>
+                 <div className="container mx-auto px-4 py-4">
+                   <div className="flex items-center justify-between">
+                     {/* Groot transparant logo in het midden */}
+                     <div className="flex-1 flex justify-center">
+                       <img
+                         src="/Spitsenspellogo.png"
+                         alt="KOSC Spitsenspel"
+                         className="h-16 md:h-20 lg:h-24 object-contain opacity-90"
+                       />
                      </div>
-                   </div>
 
-                   {user && (
-                     <div className="flex items-center space-x-2 md:space-x-4">
-                       <span className="text-white text-sm md:text-base hidden sm:block">Welkom, {user.user_metadata?.first_name || user.email}</span>
-                       <button
-                         onClick={handleSignOut}
-                         className="bg-red-600 hover:bg-red-700 text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2 rounded-md transition-colors"
-                       >
-                         Uitloggen
-                       </button>
-                     </div>
-                   )}
+                     {/* Uitlog knop rechts (alleen als user ingelogd is) */}
+                     {user && (
+                       <div className="flex items-center space-x-2 md:space-x-4">
+                         <span className="text-white text-sm md:text-base hidden sm:block">Welkom, {user.user_metadata?.first_name || user.email}</span>
+                         <button
+                           onClick={handleSignOut}
+                           className="bg-red-600 hover:bg-red-700 text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2 rounded-md transition-colors"
+                         >
+                           Uitloggen
+                         </button>
+                       </div>
+                     )}
+                   </div>
                  </div>
                </div>
 
@@ -243,13 +239,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                    </div>
                    <div className="border-t border-gray-700 mt-6 md:mt-8 pt-6 md:pt-8 text-center">
                      <div className="flex flex-col items-center space-y-4">
-                       {/* KOSC Spitsenspel Logo */}
+                       {/* KOSC Logo */}
                        <div className="flex items-center justify-center">
-                         <img
-                           src="/Spitsenspellogo.png"
-                           alt="KOSC Spitsenspel Logo"
-                           className="h-20 w-auto object-contain"
-                         />
+                         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center p-2 mr-3">
+                           <img
+                             src="/kosc-logo.png"
+                             alt="KOSC Logo"
+                             className="h-12 w-12 object-contain"
+                           />
+                         </div>
+                         <div className="text-white">
+                           <h4 className="text-lg font-bold">KOSC</h4>
+                           <p className="text-sm text-gray-300">1933 Ootmarsum</p>
+                         </div>
                        </div>
                        <p className="text-gray-400 text-sm md:text-base">
                          © 2025 KOSC Spitsenspel. Alle rechten voorbehouden.
