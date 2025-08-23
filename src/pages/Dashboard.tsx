@@ -358,6 +358,24 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    // Haal speler informatie op voor bevestigingsmelding
+    const player = availablePlayers.find(p => p.id === userTeamItem.player_id);
+    if (!player) {
+      alert('Speler informatie niet gevonden!');
+      return;
+    }
+
+    // Toon bevestigingsmelding
+    const confirmMessage = `Weet je zeker dat je ${player.name} (${player.team}) wilt verkopen?\n\n` +
+                          `Prijs: €${player.price.toLocaleString()}\n` +
+                          `Positie: ${player.position}\n\n` +
+                          `Deze actie kan niet ongedaan worden gemaakt.`;
+    
+    const isConfirmed = window.confirm(confirmMessage);
+    if (!isConfirmed) {
+      return; // Gebruiker heeft geannuleerd
+    }
+
     try {
       const { error } = await supabase
         .from('user_teams')
@@ -368,7 +386,7 @@ const Dashboard: React.FC = () => {
 
       // Reload data
       await loadUserData();
-      alert('Speler is verkocht!');
+      alert(`${player.name} is succesvol verkocht!`);
 
     } catch (error) {
       console.error('Fout bij verkopen speler:', error);
