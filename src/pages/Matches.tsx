@@ -198,7 +198,8 @@ export default function Matches() {
               </div>
             )}
           </div>
-        ))}
+        ))
+        )}
       </div>
 
 
