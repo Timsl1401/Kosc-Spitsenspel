@@ -6,7 +6,7 @@ const Home: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect ingelogde gebruikers naar dashboard
+  // Stuur ingelogde gebruikers door naar hun dashboard
   useEffect(() => {
     if (user) {
       navigate('/dashboard');
@@ -15,7 +15,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
+      {/* Hoofdsectie */}
       <div className="kosc-section text-center">
         <h1 className="kosc-title text-4xl mb-6">
           KOSC SPITSENSPEL
@@ -52,7 +52,7 @@ const Home: React.FC = () => {
         )}
       </div>
 
-      {/* Features Grid */}
+      {/* Wat kun je doen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="kosc-card text-center">
           <div className="text-4xl mb-4">⚽</div>
@@ -79,7 +79,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* How it Works */}
+      {/* Hoe werkt het */}
       <div className="kosc-section">
         <h2 className="kosc-title">Hoe werkt het?</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

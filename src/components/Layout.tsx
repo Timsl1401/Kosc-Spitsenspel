@@ -11,13 +11,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     try {
       await signOut();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Fout bij uitloggen:', error);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-                     {/* Top Utility Bar */}
+                     {/* Bovenste balk */}
                <div className="kosc-header">
                  <div className="container mx-auto px-4 flex justify-between items-center">
                    <div className="flex space-x-4 md:space-x-6">
@@ -28,7 +28,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  </div>
                </div>
 
-                     {/* Main Header with Logo */}
+                     {/* Hoofdheader met logo */}
                <div className="kosc-header">
                  <div className="container mx-auto px-4 flex items-center justify-between">
                    <div className="flex items-center space-x-2 md:space-x-4">
@@ -61,10 +61,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  </div>
                </div>
 
-                     {/* Main Navigation */}
+                     {/* Hoofdnavigatie */}
                <nav className="kosc-nav">
                  <div className="container mx-auto px-4">
-                   {/* Mobile Navigation */}
+                   {/* Mobiele navigatie */}
                    <div className="md:hidden">
                      <button
                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -76,7 +76,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      </button>
                    </div>
                    
-                   {/* Desktop Navigation */}
+                   {/* Desktop navigatie */}
                    <div className="hidden md:flex space-x-1">
                      <Link
                        to="/"
@@ -136,7 +136,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      )}
                    </div>
                    
-                   {/* Mobile Menu */}
+                   {/* Mobiel menu */}
                    {isMobileMenuOpen && (
                      <div className="md:hidden absolute top-full left-0 right-0 bg-gray-800 border-t border-gray-700 z-50">
                        <div className="flex flex-col space-y-1 p-4">
@@ -210,12 +210,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  </div>
                </nav>
 
-      {/* Main Content */}
+             {/* Hoofdinhoud */}
       <main className="container mx-auto px-4 py-8">
         {children}
       </main>
 
-                     {/* Footer */}
+                     {/* Voettekst */}
                <footer className="kosc-footer">
                  <div className="container mx-auto px-4">
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">

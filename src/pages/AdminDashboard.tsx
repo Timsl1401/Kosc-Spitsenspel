@@ -28,7 +28,7 @@ const AdminDashboard: React.FC = () => {
   const [suspiciousActivities, setSuspiciousActivities] = useState<SuspiciousActivity[]>([]);
   const [activeTab, setActiveTab] = useState<'players' | 'goals' | 'dates' | 'feedback' | 'monitoring'>('players');
   
-  // Player management states
+  // Spelers beheren
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [newPlayer, setNewPlayer] = useState({
     name: '',
@@ -38,13 +38,13 @@ const AdminDashboard: React.FC = () => {
     goals: 0
   });
   
-  // Goals management states
+  // Doelpunten beheren
   const [selectedPlayer, setSelectedPlayer] = useState<string>('');
   const [goalsToAdd, setGoalsToAdd] = useState(0);
   const [matchDate, setMatchDate] = useState('');
   const [matchType, setMatchType] = useState<'competition' | 'friendly'>('competition');
 
-  // Date management states
+  // Datums en instellingen
   const [gameSettings, setGameSettings] = useState<{
     start_deadline: string;
     season_start: string;
@@ -59,7 +59,7 @@ const AdminDashboard: React.FC = () => {
     transfer_window_close: ''
   });
 
-  // Feedback states
+  // Feedback van gebruikers
   const [feedback, setFeedback] = useState<Array<{
     id: string;
     name: string;

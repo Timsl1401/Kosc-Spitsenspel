@@ -3,6 +3,8 @@ import { SupabaseProvider } from './contexts/SupabaseContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { AdminProvider } from './contexts/AdminContext'
 import Layout from './components/Layout'
+
+// Alle pagina's importeren
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
@@ -25,21 +27,23 @@ function App() {
           <Router>
             <Layout>
               <Routes>
+                {/* Publieke pagina's - geen login nodig */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
-        
                 <Route path="/rules" element={<Rules />} />
                 <Route path="/feedback" element={<Feedback />} />
-                        <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+                
+                {/* Beveiligde pagina's - alleen voor ingelogde gebruikers */}
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route 
                   path="/admin" 
                   element={

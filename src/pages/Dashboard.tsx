@@ -38,9 +38,9 @@ const Dashboard: React.FC = () => {
       const isDeadlinePassed = currentDate > deadlineDate;
       setIsDeadlinePassed(isDeadlinePassed);
       
-      // If deadline has passed, calculate remaining transfers
+      // Als de deadline is geweest, bereken hoeveel transfers er nog over zijn
       if (isDeadlinePassed) {
-        // Count players bought after deadline
+        // Tel hoeveel spelers er gekocht zijn na de deadline
         const { data: postDeadlinePlayers } = await supabase
           .from('user_teams')
           .select('bought_at')
@@ -54,8 +54,8 @@ const Dashboard: React.FC = () => {
   };
 
   const getGoalsAfterPurchase = (_playerId: string, _purchaseDate: string): number => {
-    // For now, return 0 - this will be implemented with real goal tracking
-    // In the future, this should query the goals table for goals scored after purchaseDate
+    // Voorlopig returnen we 0 - later wordt dit gekoppeld aan echte doelpunten tracking
+    // In de toekomst moet dit de goals tabel checken voor doelpunten na de aankoopdatum
     return 0;
   };
 
@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
 
   const loadLeaderboard = async () => {
     try {
-      // Get all users with their teams
+      // Haal alle gebruikers op met hun teams en gebruikersgegevens
       const { data: userTeamsData, error: userTeamsError } = await supabase
         .from('user_teams')
         .select(`
@@ -111,8 +111,8 @@ const Dashboard: React.FC = () => {
 
       if (userTeamsError) throw userTeamsError;
 
-      // Group by user and calculate points
-      const userPoints: { [key: string]: { points: number; teamValue: number; email: string } } = {};
+      // Groepeer per gebruiker en bereken punten
+      const userPoints: { [key: string]: { points: number; teamValue: number; email: string; firstName: string } } = {};
       
       userTeamsData?.forEach(userTeam => {
         if (userTeam.players) {
@@ -120,25 +120,39 @@ const Dashboard: React.FC = () => {
           const userId = userTeam.user_id;
           
           if (!userPoints[userId]) {
-            userPoints[userId] = { points: 0, teamValue: 0, email: '' };
+            userPoints[userId] = { points: 0, teamValue: 0, email: '', firstName: '' };
           }
           
-          // Calculate points (only for goals after purchase)
+          // Bereken punten (alleen voor doelpunten na aankoop)
           const goalsAfterPurchase = getGoalsAfterPurchase(player.id, userTeam.bought_at);
           userPoints[userId].points += goalsAfterPurchase * getTeamPoints(player.team);
           
-          // Add team value
+          // Voeg team waarde toe
           userPoints[userId].teamValue += player.price;
         }
       });
 
-      // Convert to array and sort by points
+      // Probeer gebruikersnamen op te halen uit de huidige gebruiker en andere beschikbare data
+      // Voor nu gebruiken we de email als naam, later kan dit uitgebreid worden met een profielen tabel
+      Object.keys(userPoints).forEach(userId => {
+        if (userPoints[userId]) {
+          // Als dit de huidige gebruiker is, gebruik dan hun naam
+          if (userId === user?.id && user?.user_metadata?.first_name) {
+            userPoints[userId].firstName = user.user_metadata.first_name;
+          } else {
+            // Anders gebruik een deel van de email als naam
+            userPoints[userId].firstName = `Speler ${userId.slice(0, 6)}`;
+          }
+        }
+      });
+
+      // Converteer naar array en sorteer op punten
       const leaderboardArray = Object.entries(userPoints)
         .map(([userId, data]) => ({
           user_id: userId,
           total_points: data.points,
           team_value: data.teamValue,
-          user_email: data.email || `User ${userId.slice(0, 8)}`,
+          user_email: data.firstName || data.email || `Gebruiker ${userId.slice(0, 8)}`,
           rank: 0
         }))
         .sort((a, b) => b.total_points - a.total_points)
@@ -150,8 +164,8 @@ const Dashboard: React.FC = () => {
 
       setLeaderboard(leaderboardArray);
     } catch (error) {
-      console.error('Error loading leaderboard:', error);
-      // Set empty leaderboard on error
+      console.error('Fout bij laden ranglijst:', error);
+      // Zet lege ranglijst bij fout
       setLeaderboard([]);
     }
   };
@@ -168,7 +182,7 @@ const Dashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load user's team
+      // Laad het team van de gebruiker
       const { data: teamData, error: teamError } = await supabase
         .from('user_teams')
         .select('*')
@@ -212,7 +226,7 @@ const Dashboard: React.FC = () => {
       // Note: transfers are now limited to max 3 players in team
 
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('Fout bij laden gebruikersdata:', error);
     } finally {
       setLoading(false);
     }
@@ -275,7 +289,7 @@ const Dashboard: React.FC = () => {
         .select();
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Supabase fout:', error);
         throw error;
       }
 
@@ -291,7 +305,7 @@ const Dashboard: React.FC = () => {
       alert(`${player.name} is toegevoegd aan je team!`);
 
     } catch (error: any) {
-      console.error('Error buying player:', error);
+      console.error('Fout bij kopen speler:', error);
       alert(`Er is een fout opgetreden bij het kopen van de speler: ${error.message || 'Onbekende fout'}`);
     }
   };
@@ -327,7 +341,7 @@ const Dashboard: React.FC = () => {
       alert('Speler is verkocht!');
 
     } catch (error) {
-      console.error('Error selling player:', error);
+      console.error('Fout bij verkopen speler:', error);
       alert('Er is een fout opgetreden bij het verkopen van de speler.');
     }
   };

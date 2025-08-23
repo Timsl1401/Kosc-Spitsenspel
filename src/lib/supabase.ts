@@ -5,13 +5,13 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Database types for KOSC Spitsenspel
+// Database types voor KOSC Spitsenspel
 export interface Player {
   id: string
   name: string
   team: string // 'KOSC 1', 'KOSC 2', 'KOSC 3', 'KOSC 4', etc.
   position: string
-  price: number // in euros
+  price: number // in euro's
   goals: number
   created_at: string
   updated_at: string
@@ -24,7 +24,7 @@ export interface Match {
   home_score: number | null
   away_score: number | null
   match_date: string
-  competition: string // 'competitie' or 'beker'
+  competition: string // 'competitie' of 'beker'
   status: 'scheduled' | 'live' | 'finished'
   created_at: string
   updated_at: string
@@ -79,7 +79,7 @@ export interface GameSettings {
   updated_at: string
 }
 
-// Helper function to get points for a team
+// Functie om punten per team te berekenen
 export const getTeamPoints = (team: string): number => {
   switch (team) {
     case 'KOSC 1':
@@ -96,14 +96,14 @@ export const getTeamPoints = (team: string): number => {
   }
 }
 
-// Helper function to check if transfers are allowed (not weekend)
+// Functie om te checken of transfers toegestaan zijn (niet in weekend)
 export const isTransferAllowed = (): boolean => {
   const today = new Date()
-  const dayOfWeek = today.getDay() // 0 = Sunday, 6 = Saturday
+  const dayOfWeek = today.getDay() // 0 = zondag, 6 = zaterdag
   return dayOfWeek !== 0 && dayOfWeek !== 6
 }
 
-// Helper function to calculate user points
+// Functie om gebruikerspunten te berekenen
 export const calculateUserPoints = (goals: Goal[], userTeam: UserTeam[]): number => {
   let totalPoints = 0
   
@@ -115,10 +115,10 @@ export const calculateUserPoints = (goals: Goal[], userTeam: UserTeam[]): number
     )
     
     if (playerInTeam) {
-      // Find player to get team
-      // This would need to be implemented with actual player lookup
-      // For now, we'll assume the goal has team information
-      totalPoints += 1 // Placeholder
+      // Zoek speler om team te vinden
+      // Dit moet nog geïmplementeerd worden met echte speler opzoeken
+      // Voor nu nemen we aan dat het doelpunt team informatie heeft
+      totalPoints += 1 // Tijdelijke waarde
     }
   })
   
