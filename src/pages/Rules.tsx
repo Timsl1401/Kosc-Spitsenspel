@@ -22,7 +22,7 @@ const Rules: React.FC = () => {
               to="/dashboard"
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors"
             >
-              Ga naar Dashboard
+              Ga naar Home
             </Link>
           </div>
         )}
@@ -138,7 +138,7 @@ const Rules: React.FC = () => {
             to="/dashboard"
             className="bg-white text-green-600 px-8 py-4 rounded-md font-semibold text-lg hover:bg-gray-100 transition-colors"
           >
-            Ga naar Dashboard
+            Ga naar Home
           </Link>
         )}
       </div>

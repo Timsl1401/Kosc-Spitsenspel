@@ -144,43 +144,43 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                    {isMobileMenuOpen && (
                      <div className="md:hidden absolute top-full left-0 right-0 bg-gray-800 border-t border-gray-700 z-50">
                        <div className="flex flex-col space-y-1 p-4">
-                         <Link
-                           to="/"
-                           className={`kosc-nav-item-mobile ${location.pathname === '/' ? 'bg-green-500 text-black' : ''}`}
-                           onClick={() => setIsMobileMenuOpen(false)}
-                         >
-                           HOME
-                         </Link>
+                         {user ? (
+                           <Link
+                             to="/dashboard"
+                             className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
+                             onClick={() => setIsMobileMenuOpen(false)}
+                           >
+                             HOME
+                           </Link>
+                         ) : (
+                           <Link
+                             to="/"
+                             className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/' ? 'bg-green-500 text-black' : ''}`}
+                             onClick={() => setIsMobileMenuOpen(false)}
+                           >
+                             HOME
+                           </Link>
+                         )}
                          <Link
                            to="/matches"
-                           className={`kosc-nav-item-mobile ${location.pathname === '/matches' ? 'bg-green-500 text-black' : ''}`}
+                           className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/matches' ? 'bg-green-500 text-black' : ''}`}
                            onClick={() => setIsMobileMenuOpen(false)}
                          >
                            WEDSTRIJDEN
                          </Link>
                          <Link
                            to="/teams"
-                           className={`kosc-nav-item-mobile ${location.pathname === '/teams' ? 'bg-green-500 text-black' : ''}`}
-                           onClick={() => setIsMobileMenuOpen(false)}
+                           className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/teams' ? 'bg-green-500 text-black' : ''}`}
                          >
                            TEAMS
                          </Link>
                          <Link
                            to="/rules"
-                           className={`kosc-nav-item-mobile ${location.pathname === '/rules' ? 'bg-green-500 text-black' : ''}`}
+                           className={`px-4 py-2 text-white hover:bg-green-500 hover:text-black transition-colors rounded ${location.pathname === '/rules' ? 'bg-green-500 text-black' : ''}`}
                            onClick={() => setIsMobileMenuOpen(false)}
                          >
                            REGELS
                          </Link>
-                         {user && (
-                           <Link
-                             to="/dashboard"
-                             className={`kosc-nav-item-mobile ${location.pathname === '/dashboard' ? 'bg-green-500 text-black' : ''}`}
-                             onClick={() => setIsMobileMenuOpen(false)}
-                           >
-                             HOME
-                           </Link>
-                         )}
                          {user && user.email === 'timsl.tsl@gmail.com' && (
                            <Link
                              to="/admin"
@@ -232,8 +232,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      <div>
                        <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Snelle Links</h3>
                        <ul className="space-y-1 md:space-y-2">
-                         <li><Link to="/" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Home</Link></li>
-                         <li><Link to="/dashboard" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Dashboard</Link></li>
+                         <li><Link to={user ? "/dashboard" : "/"} className="text-gray-300 hover:text-green-400 text-sm md:text-base">Home</Link></li>
                          <li><Link to="/rules" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Regels</Link></li>
                          <li><Link to="/feedback" className="text-gray-300 hover:text-green-400 text-sm md:text-base">Feedback</Link></li>
                        </ul>
