@@ -13,8 +13,6 @@ export interface VoetbalMatch {
 }
 
 export class VoetbalService {
-  private static readonly BASE_URL = 'https://www.voetbal.nl';
-  
   // Zoek KOSC teams op basis van echte website analyse
   static async searchKoscTeams(): Promise<string[]> {
     try {
@@ -94,7 +92,7 @@ export class VoetbalService {
   }
 
   // Parse wedstrijd data uit HTML
-  private static parseWedstrijdData(html: string, teamName: string): VoetbalMatch[] {
+  private static parseWedstrijdData(_html: string, teamName: string): VoetbalMatch[] {
     try {
       console.log(`Parsen van wedstrijd data voor ${teamName}...`);
       
