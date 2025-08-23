@@ -28,7 +28,7 @@ const App: React.FC = () => {
           </div>
           
           <p className="mt-4 text-sm text-gray-600">
-            Klaar! De app staat nu op je homescherm.
+            De app staat nu op je homescherm.
           </p>
         </div>
 
@@ -44,7 +44,7 @@ const App: React.FC = () => {
           </div>
           
           <p className="mt-4 text-sm text-gray-600">
-            Klaar! De app staat nu op je startscherm.
+            De app staat nu op je startscherm.
           </p>
         </div>
 
