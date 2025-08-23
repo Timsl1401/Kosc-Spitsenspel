@@ -358,17 +358,6 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // Check if player was bought before deadline
-    if (transferDeadline) {
-      const playerBoughtDate = new Date(userTeamItem.bought_at);
-      const deadlineDate = new Date(transferDeadline);
-      
-      if (playerBoughtDate < deadlineDate) {
-        alert('Je kunt deze speler niet verkopen omdat hij voor de deadline is gekocht!');
-        return;
-      }
-    }
-
     try {
       const { error } = await supabase
         .from('user_teams')
