@@ -3,7 +3,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/Kosclogoapp.png'
+  '/FreeVeteraan.jpg'
 ];
 
 self.addEventListener('install', (event) => {
