@@ -204,45 +204,83 @@ export class VoetbalService {
     try {
       console.log('Bijwerken van wedstrijden in database...');
       
-      for (const match of matches) {
-        // Check of wedstrijd al bestaat
-        const { data: existingMatch } = await supabase
+      // Eerst controleren of de matches tabel bestaat
+      try {
+        const { data: tableCheck, error: tableError } = await supabase
           .from('matches')
           .select('id')
-          .eq('home_team', match.homeTeam)
-          .eq('away_team', match.awayTeam)
-          .eq('match_date', match.matchDate)
-          .single();
-
-        if (!existingMatch) {
-          // Voeg nieuwe wedstrijd toe
-          await supabase.from('matches').insert({
-            home_team: match.homeTeam,
-            away_team: match.awayTeam,
-            home_score: match.homeScore,
-            away_score: match.awayScore,
-            match_date: match.matchDate,
-            competition: match.competition,
-            status: match.status,
-            is_competitive: this.isCompetitiveMatch(match.competition)
-          });
-        } else {
-          // Update bestaande wedstrijd
-          await supabase
+          .limit(1);
+        
+        if (tableError) {
+          console.error('Matches tabel bestaat niet of is niet toegankelijk:', tableError);
+          throw new Error('Matches tabel niet beschikbaar in database');
+        }
+        
+        console.log('Matches tabel is toegankelijk');
+      } catch (tableCheckError) {
+        console.error('Kan matches tabel niet controleren:', tableCheckError);
+        throw new Error('Database tabel check mislukt');
+      }
+      
+      for (const match of matches) {
+        try {
+          // Check of wedstrijd al bestaat
+          const { data: existingMatch, error: checkError } = await supabase
             .from('matches')
-            .update({
+            .select('id')
+            .eq('home_team', match.homeTeam)
+            .eq('away_team', match.awayTeam)
+            .eq('match_date', match.matchDate)
+            .single();
+
+          if (checkError && checkError.code !== 'PGRST116') {
+            console.error(`Fout bij controleren bestaande wedstrijd:`, checkError);
+            continue;
+          }
+
+          if (!existingMatch) {
+            // Voeg nieuwe wedstrijd toe
+            const { error: insertError } = await supabase.from('matches').insert({
+              home_team: match.homeTeam,
+              away_team: match.awayTeam,
               home_score: match.homeScore,
               away_score: match.awayScore,
+              match_date: match.matchDate,
+              competition: match.competition,
               status: match.status,
               is_competitive: this.isCompetitiveMatch(match.competition)
-            })
-            .eq('id', existingMatch.id);
+            });
+
+            if (insertError) {
+              console.error(`Fout bij invoegen wedstrijd ${match.homeTeam} vs ${match.awayTeam}:`, insertError);
+            } else {
+              console.log(`Wedstrijd toegevoegd: ${match.homeTeam} vs ${match.awayTeam}`);
+            }
+          } else {
+            // Update bestaande wedstrijd
+            const { error: updateError } = await supabase
+              .from('matches')
+              .update({
+                home_score: match.homeScore,
+                away_score: match.awayScore,
+                status: match.status,
+                is_competitive: this.isCompetitiveMatch(match.competition)
+              })
+              .eq('id', existingMatch.id);
+
+            if (updateError) {
+              console.error(`Fout bij updaten wedstrijd ${match.homeTeam} vs ${match.awayTeam}:`, updateError);
+            }
+          }
+        } catch (matchError) {
+          console.error(`Fout bij verwerken wedstrijd ${match.homeTeam} vs ${match.awayTeam}:`, matchError);
         }
       }
       
       console.log(`${matches.length} wedstrijden bijgewerkt in database`);
     } catch (error) {
       console.error('Fout bij bijwerken wedstrijden in database:', error);
+      throw error;
     }
   }
 }

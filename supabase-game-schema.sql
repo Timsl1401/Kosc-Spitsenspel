@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS matches (
   match_date TIMESTAMP WITH TIME ZONE NOT NULL,
   competition TEXT NOT NULL DEFAULT 'competitie' CHECK (competition IN ('competitie', 'beker')),
   status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'live', 'finished')),
+  is_competitive BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
