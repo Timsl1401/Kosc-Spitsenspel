@@ -24,7 +24,10 @@ const Dashboard: React.FC = () => {
   }>>([]);
   const [activeTab, setActiveTab] = useState<'team' | 'leaderboard'>('team');
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
-  const [hasShownRules, setHasShownRules] = useState(false);
+  const [hasShownRules, setHasShownRules] = useState(() => {
+    // Check localStorage om te zien of we al naar rules zijn geweest
+    return localStorage.getItem(`hasShownRules_${user?.id}`) === 'true';
+  });
 
 
   const loadTransferDeadline = async () => {
@@ -202,6 +205,7 @@ const Dashboard: React.FC = () => {
       // Als gebruiker geen team heeft, stuur naar spelregels
       if (!existingTeam || existingTeam.length === 0) {
         setHasShownRules(true);
+        localStorage.setItem(`hasShownRules_${user?.id}`, 'true');
         navigate('/rules');
       }
     } catch (error) {
