@@ -3,9 +3,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/Spitsenspellogo.png',
-  '/Spitsenspellogowit.png',
-  '/kosc-logo.png'
+  '/Kosclogoapp.png'
 ];
 
 self.addEventListener('install', (event) => {
