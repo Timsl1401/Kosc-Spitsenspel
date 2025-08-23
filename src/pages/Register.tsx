@@ -114,7 +114,7 @@ const Register: React.FC = () => {
                     required
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="kosc-input pl-10"
+                    className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                     placeholder="Voornaam"
                   />
                 </div>
@@ -136,7 +136,7 @@ const Register: React.FC = () => {
                     required
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="kosc-input pl-10"
+                    className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                     placeholder="Achternaam"
                   />
                 </div>
@@ -159,7 +159,7 @@ const Register: React.FC = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="kosc-input pl-10"
+                  className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                   placeholder="jouw@email.nl"
                 />
               </div>
@@ -181,7 +181,7 @@ const Register: React.FC = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="kosc-input pl-10 pr-10"
+                  className="appearance-none relative block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                   placeholder="••••••••"
                 />
                 <button
@@ -214,7 +214,7 @@ const Register: React.FC = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="kosc-input pl-10 pr-10"
+                  className="appearance-none relative block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                   placeholder="••••••••"
                 />
                 <button
@@ -236,7 +236,7 @@ const Register: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="kosc-button w-full py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-lg font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'Account aanmaken...' : 'Account aanmaken'}
             </button>
