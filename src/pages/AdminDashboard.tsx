@@ -705,14 +705,18 @@ const AdminDashboard: React.FC = () => {
                   className="border border-gray-300 rounded-md px-3 py-2"
                 >
                   <option value="">Selecteer Team</option>
-                  <option value="KOSC 1">KOSC 1</option>
-                  <option value="KOSC 2">KOSC 2</option>
-                  <option value="KOSC 3">KOSC 3</option>
-                  <option value="KOSC 4">KOSC 4</option>
-                  <option value="KOSC 5">KOSC 5</option>
-                  <option value="KOSC 6">KOSC 6</option>
-                  <option value="KOSC 7">KOSC 7</option>
-                  <option value="KOSC 8">KOSC 8</option>
+                  <optgroup label="Zondag Teams">
+                    <option value="KOSC 1">KOSC 1</option>
+                    <option value="KOSC 2">KOSC 2</option>
+                    <option value="KOSC 3">KOSC 3</option>
+                    <option value="KOSC 4">KOSC 4</option>
+                    <option value="KOSC 5">KOSC 5</option>
+                    <option value="KOSC 6">KOSC 6</option>
+                    <option value="KOSC 7">KOSC 7</option>
+                  </optgroup>
+                  <optgroup label="Zaterdag Teams">
+                    <option value="KOSC 2/3">KOSC 2/3</option>
+                  </optgroup>
                 </select>
                 <select
                   value={newPlayer.position}
@@ -785,14 +789,18 @@ const AdminDashboard: React.FC = () => {
                               onChange={(e) => setEditingPlayer({ ...editingPlayer, team: e.target.value })}
                               className="border border-gray-300 rounded px-2 py-1"
                             >
-                              <option value="KOSC 1">KOSC 1</option>
-                              <option value="KOSC 2">KOSC 2</option>
-                              <option value="KOSC 3">KOSC 3</option>
-                              <option value="KOSC 4">KOSC 4</option>
-                              <option value="KOSC 5">KOSC 5</option>
-                              <option value="KOSC 6">KOSC 6</option>
-                              <option value="KOSC 7">KOSC 7</option>
-                              <option value="KOSC 8">KOSC 8</option>
+                              <optgroup label="Zondag Teams">
+                                <option value="KOSC 1">KOSC 1</option>
+                                <option value="KOSC 2">KOSC 2</option>
+                                <option value="KOSC 3">KOSC 3</option>
+                                <option value="KOSC 4">KOSC 4</option>
+                                <option value="KOSC 5">KOSC 5</option>
+                                <option value="KOSC 6">KOSC 6</option>
+                                <option value="KOSC 7">KOSC 7</option>
+                              </optgroup>
+                              <optgroup label="Zaterdag Teams">
+                                <option value="KOSC 2/3">KOSC 2/3</option>
+                              </optgroup>
                             </select>
                           ) : (
                             <div className="text-sm text-gray-900">{player.team}</div>
