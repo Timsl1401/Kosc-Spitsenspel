@@ -82,7 +82,15 @@ export class VoetbalService {
         const matches = this.parseWedstrijdData(html, teamName);
         console.log(`${matches.length} wedstrijden gevonden voor ${teamName}`);
         
-        return matches;
+        // Filter alleen toekomstige wedstrijden
+        const futureMatches = matches.filter(match => {
+          const matchDate = new Date(match.matchDate);
+          const today = new Date();
+          return matchDate >= today;
+        });
+        
+        console.log(`${futureMatches.length} toekomstige wedstrijden voor ${teamName}`);
+        return futureMatches;
       } catch (fetchError) {
         console.log('Fetch error, probeer mock data:', fetchError);
         // Als fetch niet werkt, return mock data voor ontwikkeling
@@ -119,27 +127,52 @@ export class VoetbalService {
   // Haal alle KOSC wedstrijden op
   static async getAllKoscMatches(): Promise<VoetbalMatch[]> {
     try {
+      console.log('Ophalen van alle KOSC wedstrijden...');
+      
       const teams = await this.searchKoscTeams();
       const allMatches: VoetbalMatch[] = [];
       
       for (const team of teams) {
-        const teamMatches = await this.getTeamMatches(team);
-        allMatches.push(...teamMatches);
+        try {
+          const teamMatches = await this.getTeamMatches(team);
+          allMatches.push(...teamMatches);
+        } catch (error) {
+          console.error(`Fout bij ophalen wedstrijden voor ${team}:`, error);
+        }
       }
       
-      // Sorteer op datum
-      return allMatches.sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime());
+      // Verwijder duplicaten en sorteer op datum
+      const uniqueMatches = this.removeDuplicateMatches(allMatches);
+      const sortedMatches = uniqueMatches.sort((a, b) => 
+        new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime()
+      );
+      
+      console.log(`Totaal ${sortedMatches.length} unieke wedstrijden gevonden voor alle teams`);
+      return sortedMatches;
     } catch (error) {
       console.error('Fout bij ophalen alle KOSC wedstrijden:', error);
       return [];
     }
   }
 
+  // Verwijder duplicaat wedstrijden
+  private static removeDuplicateMatches(matches: VoetbalMatch[]): VoetbalMatch[] {
+    const uniqueMatches = new Map<string, VoetbalMatch>();
+    
+    matches.forEach(match => {
+      const key = `${match.homeTeam}_${match.awayTeam}_${match.matchDate}`;
+      if (!uniqueMatches.has(key)) {
+        uniqueMatches.set(key, match);
+      }
+    });
+    
+    return Array.from(uniqueMatches.values());
+  }
+
   // Mock data voor ontwikkeling (vervang dit door echte scraping)
   private static getMockMatches(teamName: string): VoetbalMatch[] {
     const today = new Date();
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
     
     // Realistische Twentse teams voor KOSC wedstrijden
@@ -155,6 +188,7 @@ export class VoetbalService {
     const randomTeam3 = twentseTeams[Math.floor(Math.random() * twentseTeams.length)];
     const randomTeam4 = twentseTeams[Math.floor(Math.random() * twentseTeams.length)];
     
+    // Alleen toekomstige wedstrijden (geen wedstrijden uit het verleden)
     return [
       {
         homeTeam: teamName,
@@ -167,24 +201,6 @@ export class VoetbalService {
       },
       {
         homeTeam: randomTeam2,
-        awayTeam: teamName,
-        homeScore: 2,
-        awayScore: 1,
-        matchDate: today.toISOString(),
-        competition: 'Eerste Klasse',
-        status: 'finished'
-      },
-      {
-        homeTeam: teamName,
-        awayTeam: randomTeam3,
-        homeScore: 3,
-        awayScore: 0,
-        matchDate: lastWeek.toISOString(),
-        competition: 'Eerste Klasse',
-        status: 'finished'
-      },
-      {
-        homeTeam: randomTeam4,
         awayTeam: teamName,
         homeScore: undefined,
         awayScore: undefined,
