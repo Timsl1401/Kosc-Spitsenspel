@@ -4,6 +4,9 @@ import { useAuth } from './AuthContext';
 interface AdminContextType {
   isAdmin: boolean;
   loading: boolean;
+  adminEmails: string[];
+  addAdminEmail: (email: string) => Promise<void>;
+  removeAdminEmail: (email: string) => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -24,21 +27,47 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [adminEmails, setAdminEmails] = useState<string[]>(['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com']);
 
   useEffect(() => {
-    if (user) {
+    if (user && user.email) {
       // Check if user is admin
-      const adminEmails = ['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com'];
-      setIsAdmin(adminEmails.includes(user.email));
+      const isAdminUser = adminEmails.some(adminEmail => 
+        adminEmail.toLowerCase() === user.email!.toLowerCase()
+      );
+      setIsAdmin(isAdminUser);
     } else {
       setIsAdmin(false);
     }
     setLoading(false);
-  }, [user]);
+  }, [user, adminEmails]);
+
+  const addAdminEmail = async (email: string) => {
+    if (!adminEmails.includes(email)) {
+      const newAdminEmails = [...adminEmails, email];
+      setAdminEmails(newAdminEmails);
+      // Update admin status for current user if needed
+      if (user && user.email && email.toLowerCase() === user.email.toLowerCase()) {
+        setIsAdmin(true);
+      }
+    }
+  };
+
+  const removeAdminEmail = async (email: string) => {
+    const newAdminEmails = adminEmails.filter(e => e !== email);
+    setAdminEmails(newAdminEmails);
+    // Update admin status for current user if needed
+    if (user && user.email && email.toLowerCase() === user.email.toLowerCase()) {
+      setIsAdmin(false);
+    }
+  };
 
   const value = {
     isAdmin,
-    loading
+    loading,
+    adminEmails,
+    addAdminEmail,
+    removeAdminEmail
   };
 
   return (
