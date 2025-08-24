@@ -27,8 +27,9 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      // Check if user is admin (timsl.tsl@gmail.com)
-      setIsAdmin(user.email === 'timsl.tsl@gmail.com');
+      // Check if user is admin
+      const adminEmails = ['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com'];
+      setIsAdmin(adminEmails.includes(user.email));
     } else {
       setIsAdmin(false);
     }
