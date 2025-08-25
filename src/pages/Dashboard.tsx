@@ -20,9 +20,10 @@ const Dashboard: React.FC = () => {
     user_email: string;
     rank: number;
   }>>([]);
-  const [activeTab, setActiveTab] = useState<'team' | 'leaderboard' | 'points'>('team');
+  const [activeTab, setActiveTab] = useState<'team' | 'leaderboard' | 'points' | 'topscorers'>('team');
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
   const [transferAllowed, setTransferAllowed] = useState(true);
+  const [topScorers, setTopScorers] = useState<Array<{ player_id: string; name: string; team: string; position: string; goals: number }>>([]);
 
 
   const loadTransferStatus = async () => {
@@ -81,7 +82,26 @@ const Dashboard: React.FC = () => {
     }
   };
 
-
+  const loadTopScorers = async () => {
+    try {
+      const topScorersData = availablePlayers
+        .filter(player => player.goals > 0)
+        .sort((a, b) => b.goals - a.goals)
+        .slice(0, 10)
+        .map(player => ({
+          player_id: player.id,
+          name: player.name,
+          team: player.team,
+          position: player.position,
+          goals: player.goals
+        }));
+      
+      setTopScorers(topScorersData);
+    } catch (error) {
+      console.error('Error loading top scorers:', error);
+      setTopScorers([]);
+    }
+  };
 
   const loadTransferDeadline = async () => {
     const { data: deadlineData } = await supabase
@@ -343,8 +363,15 @@ const Dashboard: React.FC = () => {
       loadLeaderboard();
       loadTransferStatus();
       loadUserProfile();
+      loadTopScorers();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (activeTab === 'topscorers') {
+      loadTopScorers();
+    }
+  }, [activeTab, availablePlayers]);
 
 
 
@@ -601,6 +628,16 @@ const Dashboard: React.FC = () => {
               }`}
             >
               Punten Overzicht
+            </button>
+            <button
+              onClick={() => setActiveTab('topscorers')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'topscorers'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Topscorers
             </button>
           </nav>
         </div>
@@ -1234,6 +1271,50 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
+      {activeTab === 'topscorers' && (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-2">Topscorers</h2>
+              <p className="text-green-100">Top 10 doelpuntenmakers</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Naam</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Positie</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Goals</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {topScorers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-600">Nog geen goals geregistreerd</td>
+                    </tr>
+                  ) : (
+                    topScorers.map((scorer, idx) => (
+                      <tr key={scorer.player_id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">{idx + 1}</td>
+                        <td className="px-6 py-4 font-medium text-gray-900">{scorer.name}</td>
+                        <td className="px-6 py-4 text-gray-700">{scorer.team}</td>
+                        <td className="px-6 py-4 text-gray-700">{scorer.position}</td>
+                        <td className="px-6 py-4 font-bold text-green-600">{scorer.goals}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Game Rules Summary - Only show when team tab is active */}
       {activeTab === 'team' && (
         <div className="kosc-section bg-gray-50">
@@ -1260,7 +1341,7 @@ const Dashboard: React.FC = () => {
             </ul>
           </div>
         </div>
-      </div>
+        </div>
       )}
     </div>
   );
