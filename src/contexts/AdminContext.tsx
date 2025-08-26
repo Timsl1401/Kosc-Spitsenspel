@@ -27,7 +27,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [adminEmails, setAdminEmails] = useState<string[]>(['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com']);
+  const [adminEmails, setAdminEmails] = useState<string[]>(['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com', 'Nickveldhuis25@gmail.com']);
 
   useEffect(() => {
     if (user && user.email) {
