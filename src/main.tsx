@@ -14,6 +14,8 @@ if ('serviceWorker' in navigator) {
         console.log('SW registration failed: ', registrationError);
       });
   });
+} else {
+  console.log('Service Worker not supported');
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

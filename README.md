@@ -76,12 +76,23 @@ npm run dev
 npm run build
 ```
 
+### Environment Variables
+
+Maak een `.env` bestand aan in de root van het project met de volgende variabelen:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+```
+
+Je kunt deze waarden vinden in je Supabase project dashboard onder Settings > API.
+
 ### Database setup
 
 1. Maak een Supabase project
 2. Voer `supabase-game-schema.sql` uit
 3. Voer `fix-admin-permissions.sql` uit
-4. Stel environment variables in
+4. Stel environment variables in (zie hierboven)
 
 ### Code aanpassen
 
@@ -97,6 +108,26 @@ npm run build
 - **Volledige navigatie**: Alle menu items en pagina's
 - **KOSC styling**: Alle originele design en branding
 - **Database schema**: Alle tabellen en functionaliteit
+
+## Problemen oplossen
+
+### Wit scherm
+
+Als je een wit scherm ziet, controleer dan:
+
+1. Of je `.env` bestand correct is ingesteld
+2. Of je Supabase project actief is
+3. Open de browser console (F12) voor foutmeldingen
+4. Probeer de browser cache te legen (Ctrl+F5 of Cmd+Shift+R)
+
+### Service Worker
+
+De app gebruikt een service worker voor caching. Als je problemen hebt:
+
+1. Open de browser console
+2. Ga naar Application > Service Workers
+3. Klik op "Unregister" om de service worker te verwijderen
+4. Ververs de pagina
 
 ## Deployment
 

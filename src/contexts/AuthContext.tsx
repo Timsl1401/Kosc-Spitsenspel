@@ -24,10 +24,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error)
+      }
       setSession(session)
       setUser(session?.user ?? null)
       setIsEmailConfirmed(session?.user?.email_confirmed_at ? true : false)
+      setLoading(false)
+    }).catch((error) => {
+      console.error('Error in getSession:', error)
       setLoading(false)
     })
 
