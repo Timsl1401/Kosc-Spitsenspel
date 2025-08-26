@@ -56,6 +56,8 @@ const Dashboard: React.FC = () => {
           const goalsAfterPurchase = await getGoalsAfterPurchase(userTeam.player_id, userTeam.bought_at);
           const newPoints = goalsAfterPurchase * getTeamPoints(player.team);
 
+          console.log(`Updating points for player ${player.name}: ${goalsAfterPurchase} goals × ${getTeamPoints(player.team)} = ${newPoints} points`);
+
           await supabase
             .from('user_teams')
             .update({ points_earned: newPoints })
@@ -217,6 +219,7 @@ const Dashboard: React.FC = () => {
       }
 
       // Als de speler goals heeft, tel die mee (vereenvoudigde aanpak)
+      // Voor nu nemen we alle goals van de speler, omdat we geen exacte datums hebben
       if (player && player.goals > 0) {
         console.log(`Goals uit players tabel voor speler ${playerId}:`, player.goals);
         return player.goals;
