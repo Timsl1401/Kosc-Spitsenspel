@@ -1,3 +1,4 @@
+import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { SupabaseProvider } from './contexts/SupabaseContext'
 import { AuthProvider } from './contexts/AuthContext'
@@ -77,6 +78,25 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
 }
 
 function App() {
+  // PWA detection and handling
+  React.useEffect(() => {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         (window.navigator as any).standalone === true;
+    
+    if (isStandalone) {
+      console.log('App running in PWA standalone mode');
+      
+      // Add PWA-specific error handling
+      window.addEventListener('error', (event) => {
+        console.error('PWA Error:', event.error);
+        // Force reload if critical error in PWA mode
+        if (event.error && event.error.message.includes('Loading')) {
+          window.location.reload();
+        }
+      });
+    }
+  }, []);
+
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <SupabaseProvider>

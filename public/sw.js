@@ -9,6 +9,10 @@ const urlsToCache = [
 // Development mode check
 const isDevelopment = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 
+// PWA context check
+const isStandalone = self.matchMedia('(display-mode: standalone)').matches || 
+                     self.navigator.standalone === true;
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -35,6 +39,16 @@ self.addEventListener('fetch', (event) => {
   // Skip caching for development
   if (isDevelopment) {
     return;
+  }
+
+  // For PWA standalone mode, be more careful with caching
+  if (isStandalone) {
+    // Always fetch fresh content for critical resources in PWA mode
+    if (event.request.url.includes('index.html') || 
+        event.request.url.includes('main') ||
+        event.request.url.includes('app')) {
+      return fetch(event.request);
+    }
   }
 
   // Skip caching for API calls and dynamic content
