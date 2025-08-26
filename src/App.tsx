@@ -22,20 +22,46 @@ import Feedback from './pages/Feedback'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+  const clearCache = async () => {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+        console.log('Service Worker cache cleared');
+        window.location.reload();
+      } catch (error) {
+        console.error('Error clearing cache:', error);
+        window.location.reload();
+      }
+    } else {
+      window.location.reload();
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Er is iets misgegaan</h2>
           <p className="text-gray-600 mb-4">
-            Er is een onverwachte fout opgetreden. Probeer de pagina te verversen.
+            Er is een onverwachte fout opgetreden. Dit kan komen door een oude versie van de app.
           </p>
-          <button
-            onClick={resetErrorBoundary}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Probeer opnieuw
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={resetErrorBoundary}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
+            >
+              Probeer opnieuw
+            </button>
+            <button
+              onClick={clearCache}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Cache legen & herladen
+            </button>
+          </div>
         </div>
       </div>
     </div>
