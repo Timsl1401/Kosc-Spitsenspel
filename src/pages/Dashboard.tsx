@@ -35,6 +35,64 @@ const Dashboard: React.FC = () => {
     }, 3000);
   };
 
+  const updatePlayerPoints = async (playerId: string, userTeamId: string) => {
+    try {
+      // Haal speler op om team te bepalen
+      const player = availablePlayers.find(p => p.id === playerId);
+      if (!player) return;
+
+      // Bereken nieuwe punten
+      const goalsAfterPurchase = await getGoalsAfterPurchase(playerId, new Date().toISOString());
+      const newPoints = goalsAfterPurchase * getTeamPoints(player.team);
+
+      // Update points_earned in database
+      const { error } = await supabase
+        .from('user_teams')
+        .update({ points_earned: newPoints })
+        .eq('id', userTeamId);
+
+      if (error) {
+        console.error('Error updating player points:', error);
+      }
+    } catch (error) {
+      console.error('Error in updatePlayerPoints:', error);
+    }
+  };
+
+  const updateAllPlayerPoints = async () => {
+    try {
+      showNotification('info', 'Punten worden bijgewerkt...');
+      
+      // Haal alle actieve user_teams op
+      const { data: userTeams, error } = await supabase
+        .from('user_teams')
+        .select('*')
+        .is('sold_at', null);
+
+      if (error) throw error;
+
+      // Update punten voor elke speler
+      for (const userTeam of userTeams || []) {
+        const player = availablePlayers.find(p => p.id === userTeam.player_id);
+        if (player) {
+          const goalsAfterPurchase = await getGoalsAfterPurchase(userTeam.player_id, userTeam.bought_at);
+          const newPoints = goalsAfterPurchase * getTeamPoints(player.team);
+
+          await supabase
+            .from('user_teams')
+            .update({ points_earned: newPoints })
+            .eq('id', userTeam.id);
+        }
+      }
+
+      showNotification('success', 'Alle punten zijn bijgewerkt!');
+      loadUserData(); // Reload data
+    } catch (error) {
+      console.error('Error updating all player points:', error);
+      showNotification('error', 'Fout bij bijwerken van punten');
+    }
+  };
+
   const loadTransferStatus = async () => {
     try {
       const allowed = await isTransferAllowed();
@@ -416,15 +474,10 @@ const Dashboard: React.FC = () => {
 
       setBudget(100000 - currentTeamValue);
 
-      // Calculate total points - ONLY for goals scored AFTER purchase
+      // Calculate total points using points_earned (much faster!)
       let totalPoints = 0;
       for (const item of teamData || []) {
-        const player = playersData?.find(p => p.id === item.player_id);
-        if (player && item.bought_at) {
-          // Get goals scored after purchase date
-          const goalsAfterPurchase = await getGoalsAfterPurchase(player.id, item.bought_at);
-          totalPoints += goalsAfterPurchase * getTeamPoints(player.team);
-        }
+        totalPoints += item.points_earned || 0;
       }
 
       setTotalPoints(totalPoints);
@@ -473,13 +526,18 @@ const Dashboard: React.FC = () => {
 
     try {
       console.log('Inserting player into user_teams...');
+      
+      // Bereken initiële punten voor deze speler
+      const initialGoals = await getGoalsAfterPurchase(player.id, new Date().toISOString());
+      const initialPoints = initialGoals * getTeamPoints(player.team);
+      
       const { data, error } = await supabase
         .from('user_teams')
         .insert({
           user_id: user.id,
           player_id: player.id,
           bought_at: new Date().toISOString(),
-          points_earned: 0
+          points_earned: initialPoints
         })
         .select();
 
@@ -633,11 +691,21 @@ const Dashboard: React.FC = () => {
       {!isDeadlinePassed && transferDeadline && (
         <div className="col-span-2 md:col-span-4 mb-6">
           <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative">
-            <strong className="font-bold">Transfer Deadline Info</strong>
-            <span className="block sm:inline"> 
-              Je kunt spelers kopen tot {new Date(transferDeadline).toLocaleDateString('nl-NL')}. 
-              Daarna kun je nog maximaal 3 nieuwe spelers kopen om je team te verbeteren.
-            </span>
+            <div className="flex justify-between items-center">
+              <div>
+                <strong className="font-bold">Transfer Deadline Info</strong>
+                <span className="block sm:inline"> 
+                  Je kunt spelers kopen tot {new Date(transferDeadline).toLocaleDateString('nl-NL')}. 
+                  Daarna kun je nog maximaal 3 nieuwe spelers kopen om je team te verbeteren.
+                </span>
+              </div>
+              <button
+                onClick={updateAllPlayerPoints}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+              >
+                Punten Bijwerken
+              </button>
+            </div>
           </div>
         </div>
       )}
