@@ -35,29 +35,7 @@ const Dashboard: React.FC = () => {
     }, 3000);
   };
 
-  const updatePlayerPoints = async (playerId: string, userTeamId: string) => {
-    try {
-      // Haal speler op om team te bepalen
-      const player = availablePlayers.find(p => p.id === playerId);
-      if (!player) return;
 
-      // Bereken nieuwe punten
-      const goalsAfterPurchase = await getGoalsAfterPurchase(playerId, new Date().toISOString());
-      const newPoints = goalsAfterPurchase * getTeamPoints(player.team);
-
-      // Update points_earned in database
-      const { error } = await supabase
-        .from('user_teams')
-        .update({ points_earned: newPoints })
-        .eq('id', userTeamId);
-
-      if (error) {
-        console.error('Error updating player points:', error);
-      }
-    } catch (error) {
-      console.error('Error in updatePlayerPoints:', error);
-    }
-  };
 
   const updateAllPlayerPoints = async () => {
     try {
