@@ -432,12 +432,6 @@ const Dashboard: React.FC = () => {
   const buyPlayer = async (player: Player) => {
     console.log('Buying player:', player.name, 'User ID:', user?.id);
     
-    // Check transfer deadline
-    if (isDeadlinePassed) {
-      alert('De transfer deadline is verstreken! Je kunt geen nieuwe spelers meer kopen.');
-      return;
-    }
-
     // Check weekend restriction
     const transferAllowed = await isTransferAllowed();
     if (!transferAllowed) {
@@ -448,12 +442,6 @@ const Dashboard: React.FC = () => {
     // Check budget
     if (budget < player.price) {
       alert(`Je hebt niet genoeg budget om deze speler te kopen! Budget: €${budget}, Prijs: €${player.price}`);
-      return;
-    }
-
-    // Check team size
-    if (userTeam.length >= 15) {
-      alert('Je team is al vol (maximaal 15 spelers)!');
       return;
     }
 
