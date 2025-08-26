@@ -48,6 +48,14 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
           <p className="text-gray-600 mb-4">
             Er is een onverwachte fout opgetreden. Dit kan komen door een oude versie van de app.
           </p>
+          {import.meta.env.DEV && (
+            <details className="text-left text-sm text-gray-500 mb-4">
+              <summary>Technische details (alleen in development)</summary>
+              <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                {error.message}
+              </pre>
+            </details>
+          )}
           <div className="space-y-3">
             <button
               onClick={resetErrorBoundary}
