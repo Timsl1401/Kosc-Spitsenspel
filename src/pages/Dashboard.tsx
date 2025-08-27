@@ -839,7 +839,7 @@ const Dashboard: React.FC = () => {
                       </span>
                       <button
                         onClick={() => sellPlayer(item)}
-                        disabled={!transferAllowed}
+                        disabled={false}
                         className="text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Verkoop
