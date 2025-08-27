@@ -299,46 +299,46 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION is_transfer_allowed(user_uuid UUID, season_uuid UUID)
 RETURNS BOOLEAN AS $$
 DECLARE
-    current_season RECORD;
-    current_time TIMESTAMP WITH TIME ZONE;
-    day_of_week INTEGER;
-    weekend_transfers_allowed BOOLEAN;
+  current_season RECORD;
+  now_time TIMESTAMP WITH TIME ZONE;
+  day_of_week INTEGER;
+  weekend_transfers_allowed BOOLEAN;
 BEGIN
-    -- Haal seizoen informatie op
-    SELECT * INTO current_season FROM seasons WHERE id = season_uuid AND is_active = true;
-    IF NOT FOUND THEN
-        RETURN false;
+  -- Haal seizoen informatie op
+  SELECT * INTO current_season FROM seasons WHERE id = season_uuid AND is_active = true;
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+  
+  now_time := NOW();
+  
+  -- Check transfer deadline
+  IF current_season.transfer_deadline IS NOT NULL AND now_time > current_season.transfer_deadline THEN
+    -- Check transfers na deadline
+    SELECT COUNT(*) INTO day_of_week
+    FROM transfers
+    WHERE user_id = user_uuid 
+      AND season_id = season_uuid 
+      AND is_after_deadline = true;
+    
+    IF day_of_week >= current_season.transfers_after_deadline THEN
+      RETURN false;
     END IF;
-    
-    current_time := NOW();
-    
-    -- Check transfer deadline
-    IF current_season.transfer_deadline IS NOT NULL AND current_time > current_season.transfer_deadline THEN
-        -- Check transfers na deadline
-        SELECT COUNT(*) INTO day_of_week
-        FROM transfers
-        WHERE user_id = user_uuid 
-          AND season_id = season_uuid 
-          AND is_after_deadline = true;
-        
-        IF day_of_week >= current_season.transfers_after_deadline THEN
-            RETURN false;
-        END IF;
+  END IF;
+  
+  -- Check weekend regel
+  SELECT value::BOOLEAN INTO weekend_transfers_allowed
+  FROM game_settings
+  WHERE key = 'weekend_transfers_allowed';
+  
+  IF NOT FOUND OR NOT weekend_transfers_allowed THEN
+    day_of_week := EXTRACT(DOW FROM now_time);
+    IF day_of_week IN (0, 6) THEN -- Zondag of zaterdag
+      RETURN false;
     END IF;
-    
-    -- Check weekend regel
-    SELECT value::BOOLEAN INTO weekend_transfers_allowed
-    FROM game_settings
-    WHERE key = 'weekend_transfers_allowed';
-    
-    IF NOT FOUND OR NOT weekend_transfers_allowed THEN
-        day_of_week := EXTRACT(DOW FROM current_time);
-        IF day_of_week IN (0, 6) THEN -- Zondag of zaterdag
-            RETURN false;
-        END IF;
-    END IF;
-    
-    RETURN true;
+  END IF;
+  
+  RETURN true;
 END;
 $$ LANGUAGE plpgsql;
 
