@@ -6,11 +6,8 @@ import {
   UserTeam, 
   Season,
   Team,
-  Position,
-  getTeamPoints, 
   isTransferAllowed,
   getActiveSeason,
-  getPlayers,
   getUserTeam,
   getAvailablePlayers,
   buyPlayer,
@@ -43,7 +40,6 @@ const Dashboard: React.FC = () => {
   const [transferAllowed, setTransferAllowed] = useState(true);
   const [currentSeason, setCurrentSeason] = useState<Season | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [positions, setPositions] = useState<Position[]>([]);
 
   // Load current season
   const loadCurrentSeason = async () => {
@@ -149,13 +145,7 @@ const Dashboard: React.FC = () => {
         .eq('is_active', true)
         .order('name');
       
-      const { data: positionsData } = await supabase
-        .from('positions')
-        .select('*')
-        .order('name');
-      
       setTeams(teamsData || []);
-      setPositions(positionsData || []);
     } catch (error) {
       console.error('Error loading teams and positions:', error);
     }
@@ -212,25 +202,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getGoalsAfterPurchase = async (playerId: string, purchaseDate: string): Promise<number> => {
-    try {
-      let startDate = purchaseDate;
-      if (!purchaseDate.includes('T')) {
-        startDate = `${purchaseDate}T00:00:00Z`;
-      }
 
-      const { data: goalsData } = await supabase
-        .from('goals')
-        .select('created_at')
-        .eq('player_id', playerId)
-        .gte('created_at', startDate);
-
-      return goalsData?.length || 0;
-    } catch (error) {
-      console.error('Error getting goals after purchase:', error);
-      return 0;
-    }
-  };
 
   const getTeamNames = (): string[] => {
     return teams.map(team => team.name).sort();
