@@ -174,3 +174,51 @@ export const calculateUserPoints = (goals: Goal[], userTeam: UserTeam[]): number
   
   return totalPoints
 }
+
+// Functie om admin emails op te halen uit database
+export const getAdminEmails = async (): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('admin_emails')
+      .select('email')
+      .order('email')
+    
+    if (error) throw error
+    return data?.map(row => row.email) || []
+  } catch (error) {
+    console.error('Error getting admin emails:', error)
+    // Fallback naar hardcoded emails als de tabel niet bestaat
+    return ['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com', 'Nickveldhuis25@gmail.com']
+  }
+}
+
+// Functie om admin email toe te voegen
+export const addAdminEmail = async (email: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('admin_emails')
+      .insert({ email: email.toLowerCase() })
+    
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error adding admin email:', error)
+    return false
+  }
+}
+
+// Functie om admin email te verwijderen
+export const removeAdminEmail = async (email: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('admin_emails')
+      .delete()
+      .eq('email', email.toLowerCase())
+    
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error removing admin email:', error)
+    return false
+  }
+}

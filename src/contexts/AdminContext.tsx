@@ -1,5 +1,6 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { getAdminEmails, addAdminEmail as addAdminEmailToDB, removeAdminEmail as removeAdminEmailFromDB } from '../lib/supabase';
 
 interface AdminContextType {
   isAdmin: boolean;
@@ -27,7 +28,23 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [adminEmails, setAdminEmails] = useState<string[]>(['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com', 'Nickveldhuis25@gmail.com']);
+  const [adminEmails, setAdminEmails] = useState<string[]>([]);
+
+  // Load admin emails from database
+  useEffect(() => {
+    const loadAdminEmails = async () => {
+      try {
+        const emails = await getAdminEmails();
+        setAdminEmails(emails);
+      } catch (error) {
+        console.error('Error loading admin emails:', error);
+        // Fallback naar hardcoded emails
+        setAdminEmails(['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com', 'Nickveldhuis25@gmail.com']);
+      }
+    };
+
+    loadAdminEmails();
+  }, []);
 
   useEffect(() => {
     if (user && user.email) {
@@ -44,21 +61,27 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 
   const addAdminEmail = async (email: string) => {
     if (!adminEmails.includes(email)) {
-      const newAdminEmails = [...adminEmails, email];
-      setAdminEmails(newAdminEmails);
-      // Update admin status for current user if needed
-      if (user && user.email && email.toLowerCase() === user.email.toLowerCase()) {
-        setIsAdmin(true);
+      const success = await addAdminEmailToDB(email);
+      if (success) {
+        const newAdminEmails = [...adminEmails, email];
+        setAdminEmails(newAdminEmails);
+        // Update admin status for current user if needed
+        if (user && user.email && email.toLowerCase() === user.email.toLowerCase()) {
+          setIsAdmin(true);
+        }
       }
     }
   };
 
   const removeAdminEmail = async (email: string) => {
-    const newAdminEmails = adminEmails.filter(e => e !== email);
-    setAdminEmails(newAdminEmails);
-    // Update admin status for current user if needed
-    if (user && user.email && email.toLowerCase() === user.email.toLowerCase()) {
-      setIsAdmin(false);
+    const success = await removeAdminEmailFromDB(email);
+    if (success) {
+      const newAdminEmails = adminEmails.filter(e => e !== email);
+      setAdminEmails(newAdminEmails);
+      // Update admin status for current user if needed
+      if (user && user.email && email.toLowerCase() === user.email.toLowerCase()) {
+        setIsAdmin(false);
+      }
     }
   };
 
