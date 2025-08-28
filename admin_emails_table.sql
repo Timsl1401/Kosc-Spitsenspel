@@ -33,6 +33,12 @@ ON CONFLICT (email) DO NOTHING;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_emails ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies (if they exist)
+DROP POLICY IF EXISTS "Allow authenticated users to read admin users" ON admin_users;
+DROP POLICY IF EXISTS "Allow admins to manage admin users" ON admin_users;
+DROP POLICY IF EXISTS "Allow authenticated users to read admin emails" ON admin_emails;
+DROP POLICY IF EXISTS "Allow admins to manage admin emails" ON admin_emails;
+
 -- Create policy to allow authenticated users to read admin users
 CREATE POLICY "Allow authenticated users to read admin users" ON admin_users
   FOR SELECT USING (auth.role() = 'authenticated');
