@@ -412,42 +412,42 @@ CREATE POLICY "Users can manage own transfers" ON transfers FOR ALL USING (auth.
 CREATE POLICY "Users can manage own points" ON user_points FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can manage own feedback" ON feedback FOR ALL USING (auth.uid() = user_id);
 
--- Admin policies (voor admin gebruikers)
+-- Admin policies (voor admin gebruikers) - Fixed to prevent recursion
 CREATE POLICY "Admins can manage all data" ON teams FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON positions FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON players FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON seasons FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON matches FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON goals FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON game_settings FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON user_profiles FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON user_teams FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON transfers FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON user_points FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 CREATE POLICY "Admins can manage all data" ON feedback FOR ALL USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM admin_users WHERE email = auth.jwt() ->> 'email')
 );
 
 -- ============================================================================
