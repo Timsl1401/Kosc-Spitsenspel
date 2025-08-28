@@ -178,27 +178,16 @@ export const calculateUserPoints = (goals: Goal[], userTeam: UserTeam[]): number
 // Functie om admin emails op te halen uit database
 export const getAdminEmails = async (): Promise<string[]> => {
   try {
-    // Probeer eerst admin_users tabel
-    const { data: adminUsers, error: adminUsersError } = await supabase
-      .from('admin_users')
-      .select('email')
-      .order('email')
-    
-    if (!adminUsersError && adminUsers) {
-      return adminUsers.map(row => row.email)
-    }
-    
-    // Fallback naar admin_emails tabel
-    const { data: adminEmails, error: adminEmailsError } = await supabase
+    const { data, error } = await supabase
       .from('admin_emails')
       .select('email')
       .order('email')
     
-    if (adminEmailsError) throw adminEmailsError
-    return adminEmails?.map(row => row.email) || []
+    if (error) throw error
+    return data?.map(row => row.email) || []
   } catch (error) {
     console.error('Error getting admin emails:', error)
-    // Fallback naar hardcoded emails als de tabellen niet bestaan
+    // Fallback naar hardcoded emails als de tabel niet bestaat
     return ['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com', 'Nickveldhuis25@gmail.com']
   }
 }
@@ -206,29 +195,11 @@ export const getAdminEmails = async (): Promise<string[]> => {
 // Functie om admin email toe te voegen
 export const addAdminEmail = async (email: string): Promise<boolean> => {
   try {
-    const emailLower = email.toLowerCase()
-    
-    // Voeg toe aan admin_users tabel
-    const { error: adminUsersError } = await supabase
-      .from('admin_users')
-      .insert({ email: emailLower })
-    
-    if (!adminUsersError) {
-      // Voeg ook toe aan admin_emails tabel voor backward compatibility
-      await supabase
-        .from('admin_emails')
-        .insert({ email: emailLower })
-        .then(() => {}) // Ignore errors for backward compatibility
-      
-      return true
-    }
-    
-    // Fallback naar admin_emails tabel
-    const { error: adminEmailsError } = await supabase
+    const { error } = await supabase
       .from('admin_emails')
-      .insert({ email: emailLower })
+      .insert({ email: email.toLowerCase() })
     
-    if (adminEmailsError) throw adminEmailsError
+    if (error) throw error
     return true
   } catch (error) {
     console.error('Error adding admin email:', error)
@@ -239,32 +210,12 @@ export const addAdminEmail = async (email: string): Promise<boolean> => {
 // Functie om admin email te verwijderen
 export const removeAdminEmail = async (email: string): Promise<boolean> => {
   try {
-    const emailLower = email.toLowerCase()
-    
-    // Verwijder uit admin_users tabel
-    const { error: adminUsersError } = await supabase
-      .from('admin_users')
-      .delete()
-      .eq('email', emailLower)
-    
-    if (!adminUsersError) {
-      // Verwijder ook uit admin_emails tabel voor backward compatibility
-      await supabase
-        .from('admin_emails')
-        .delete()
-        .eq('email', emailLower)
-        .then(() => {}) // Ignore errors for backward compatibility
-      
-      return true
-    }
-    
-    // Fallback naar admin_emails tabel
-    const { error: adminEmailsError } = await supabase
+    const { error } = await supabase
       .from('admin_emails')
       .delete()
-      .eq('email', emailLower)
+      .eq('email', email.toLowerCase())
     
-    if (adminEmailsError) throw adminEmailsError
+    if (error) throw error
     return true
   } catch (error) {
     console.error('Error removing admin email:', error)
