@@ -1098,11 +1098,13 @@ const AdminDashboard: React.FC = () => {
                   ))}
                 </select>
                                  <input
-                   type="text"
+                   type="number"
+                   min="0"
+                   max="10"
                    placeholder="Aantal doelpunten"
                    value={goalsToAdd === 0 ? '' : goalsToAdd.toString()}
                    onChange={(e) => {
-                     const value = e.target.value.replace(/[^0-9]/g, '');
+                     const value = e.target.value;
                      setGoalsToAdd(value ? parseInt(value) : 0);
                    }}
                    className="border border-gray-300 rounded-md px-3 py-2"
