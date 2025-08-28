@@ -423,7 +423,7 @@ const AdminDashboard: React.FC = () => {
       // Groepeer per gebruiker en bereken statistieken
       const userStats = new Map();
       
-      userTeams?.forEach(userTeam => {
+      for (const userTeam of userTeams || []) {
         const userId = userTeam.user_id;
         const player = userTeam.players as any;
         
@@ -442,9 +442,10 @@ const AdminDashboard: React.FC = () => {
         
         // Bereken punten (vereenvoudigde aanpak)
         const goalsForPlayer = player.goals || 0;
-        const pointsForPlayer = goalsForPlayer * getTeamPoints(player.team);
+        const teamPoints = await getTeamPoints(player.team);
+        const pointsForPlayer = goalsForPlayer * teamPoints;
         stats.total_points += pointsForPlayer;
-      });
+      }
 
       // Haal gebruikersprofielen op
       const { data: profiles, error: profilesError } = await supabase
@@ -515,10 +516,11 @@ const AdminDashboard: React.FC = () => {
       if (!user || !userTeams) return;
 
       // Bereken punten per speler
-      const teamDetails = userTeams.map(userTeam => {
+      const teamDetails = await Promise.all(userTeams.map(async userTeam => {
         const player = userTeam.players as any;
         const goalsForPlayer = player.goals || 0;
-        const pointsForPlayer = goalsForPlayer * getTeamPoints(player.team);
+        const teamPoints = await getTeamPoints(player.team);
+        const pointsForPlayer = goalsForPlayer * teamPoints;
         
         return {
           name: player.name,
@@ -529,7 +531,7 @@ const AdminDashboard: React.FC = () => {
           price: player.price,
           boughtAt: new Date(userTeam.bought_at).toLocaleDateString('nl-NL')
         };
-      });
+      }));
 
       // Sorteer op punten (hoogste eerst)
       teamDetails.sort((a, b) => b.points - a.points);
@@ -586,15 +588,16 @@ const AdminDashboard: React.FC = () => {
       let teamValue = 0;
       let teamCount = 0;
 
-      userTeams?.forEach(userTeam => {
+      for (const userTeam of userTeams || []) {
         const player = userTeam.players as any;
         const goalsForPlayer = player.goals || 0;
-        const pointsForPlayer = goalsForPlayer * getTeamPoints(player.team);
+        const teamPoints = await getTeamPoints(player.team);
+        const pointsForPlayer = goalsForPlayer * teamPoints;
         
         totalPoints += pointsForPlayer;
         teamValue += player.price || 0;
         teamCount++;
-      });
+      }
 
       // Update lokale state
       setUsers(prevUsers => 
@@ -1102,11 +1105,13 @@ const AdminDashboard: React.FC = () => {
                   ))}
                 </select>
                                  <input
-                   type="text"
+                   type="number"
+                   min="0"
+                   max="10"
                    placeholder="Aantal doelpunten"
                    value={goalsToAdd === 0 ? '' : goalsToAdd.toString()}
                    onChange={(e) => {
-                     const value = e.target.value.replace(/[^0-9]/g, '');
+                     const value = e.target.value;
                      setGoalsToAdd(value ? parseInt(value) : 0);
                    }}
                    className="border border-gray-300 rounded-md px-3 py-2"
@@ -1721,7 +1726,8 @@ const AdminDashboard: React.FC = () => {
                           <div className="flex justify-between items-center mt-1">
                             <span className="text-sm text-gray-600">Punten per goal:</span>
                             <span className="text-sm font-medium text-gray-900">
-                              {getTeamPoints(player.team)} pt
+                              {/* TODO: Load team points dynamically */}
+                              1.0 pt
                             </span>
                           </div>
                         </div>

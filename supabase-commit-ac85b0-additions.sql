@@ -119,6 +119,3 @@ END $$;
 INSERT INTO game_settings (key, value, description)
 VALUES ('weekend_transfers_allowed', 'false', 'Of transfers in het weekend toegestaan zijn')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
-
-
-
