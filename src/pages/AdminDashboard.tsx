@@ -277,6 +277,47 @@ const AdminDashboard: React.FC = () => {
 
       console.log('Adding goals:', { player: player.name, goals: goalsToAdd, date: matchDate, type: matchType });
 
+      // First, create a match if it doesn't exist
+      let matchId = null;
+      if (matchDate && matchType) {
+        const competition = matchType === 'competition' ? 'competitie' : 'beker';
+        const { data: matchData, error: matchError } = await supabase
+          .from('matches')
+          .insert({
+            home_team: 'KOSC 1', // Default team, can be made configurable
+            away_team: 'Tegenstander',
+            match_date: matchDate,
+            competition: competition,
+            status: 'finished',
+            is_competitive: true
+          })
+          .select()
+          .single();
+
+        if (matchError) {
+          console.error('Error creating match:', matchError);
+          throw matchError;
+        }
+        matchId = matchData.id;
+      }
+
+      // Add goals to the goals table
+      for (let i = 0; i < goalsToAdd; i++) {
+        const { error: goalError } = await supabase
+          .from('goals')
+          .insert({
+            match_id: matchId,
+            player_id: selectedPlayer,
+            minute: 45 + i // Default minute, can be made configurable
+          });
+
+        if (goalError) {
+          console.error('Error adding goal:', goalError);
+          throw goalError;
+        }
+      }
+
+      // Update player's goals count in players table
       const { data, error } = await supabase
         .from('players')
         .update({ goals: player.goals + goalsToAdd })

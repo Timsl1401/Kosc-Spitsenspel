@@ -98,6 +98,16 @@ export interface UserProfile {
   updated_at: string
 }
 
+export interface Feedback {
+  id: string
+  name: string
+  email: string
+  subject: string
+  message: string
+  rating: number
+  created_at: string
+}
+
 // Functie om punten per team te berekenen
 export const getTeamPoints = (team: string): number => {
   switch (team) {
