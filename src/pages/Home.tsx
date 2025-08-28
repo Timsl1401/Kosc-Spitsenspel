@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 const Home: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
+  
   // Stuur ingelogde gebruikers door naar hun dashboard
   useEffect(() => {
     if (user) {
