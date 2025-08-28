@@ -43,6 +43,7 @@ const AdminDashboard: React.FC = () => {
   const [goalsToAdd, setGoalsToAdd] = useState(0);
   const [matchDate, setMatchDate] = useState('');
   const [matchType, setMatchType] = useState<'competition' | 'friendly'>('competition');
+  const [guestTeamCode, setGuestTeamCode] = useState<string>('');
 
   // Datums en instellingen
   const [gameSettings, setGameSettings] = useState<{
@@ -308,7 +309,9 @@ const AdminDashboard: React.FC = () => {
           .insert({
             match_id: matchId,
             player_id: selectedPlayer,
-            minute: 45 + i // Default minute, can be made configurable
+            minute: 45 + i, // Default minute, can be made configurable
+            team_code: guestTeamCode && guestTeamCode.trim() !== '' ? guestTeamCode.trim() : null,
+            ...(matchDate ? { created_at: new Date(matchDate).toISOString() } : {})
           });
 
         if (goalError) {
@@ -338,6 +341,7 @@ const AdminDashboard: React.FC = () => {
       setSelectedPlayer('');
       setGoalsToAdd(0);
       setMatchDate('');
+      setGuestTeamCode('');
       await loadPlayers();
       alert(`${goalsToAdd} doelpunt(en) toegevoegd aan ${player.name}!`);
     } catch (error) {
@@ -872,7 +876,7 @@ const AdminDashboard: React.FC = () => {
             {/* Add New Player */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Nieuwe Speler Toevoegen</h2>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <input
                   type="text"
                   placeholder="Naam"
@@ -1084,7 +1088,7 @@ const AdminDashboard: React.FC = () => {
             {/* Add Goals */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Doelpunten Toevoegen</h2>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <select
                   value={selectedPlayer}
                   onChange={(e) => setSelectedPlayer(e.target.value)}
@@ -1120,6 +1124,26 @@ const AdminDashboard: React.FC = () => {
                 >
                   <option value="competition">Competitie</option>
                   <option value="friendly">Vriendschappelijk</option>
+                </select>
+                <select
+                  value={guestTeamCode}
+                  onChange={(e) => setGuestTeamCode(e.target.value)}
+                  className="border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="">Eigen team (standaard)</option>
+                  {[
+                    'KOSC 1',
+                    'KOSC 2',
+                    'KOSC 3',
+                    'KOSC 4',
+                    'KOSC 5',
+                    'KOSC 6',
+                    'KOSC 7',
+                    'KOSC zaterdag 2/3',
+                    'KOSC A1'
+                  ].map((teamName) => (
+                    <option key={teamName} value={teamName}>{teamName}</option>
+                  ))}
                 </select>
                 <button
                   onClick={addGoals}

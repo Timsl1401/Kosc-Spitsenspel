@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS public.goals (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   match_id UUID NOT NULL REFERENCES public.matches(id) ON DELETE CASCADE,
   player_id UUID NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
+  team_code TEXT,
   minute INTEGER NOT NULL CHECK (minute > 0 AND minute <= 120),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

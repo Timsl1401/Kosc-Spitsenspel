@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Player, UserTeam, getTeamPoints, isTransferAllowed } from '../lib/supabase';
+import { supabase, Player, UserTeam, Goal, getTeamPoints, isTransferAllowed } from '../lib/supabase';
 import { Users, Trophy, Euro, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [userTeam, setUserTeam] = useState<UserTeam[]>([]);
+  const [userTeamAll, setUserTeamAll] = useState<UserTeam[]>([]);
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(100000);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [pointsBreakdown, setPointsBreakdown] = useState<Record<string, { totalPoints: number; totalGoals: number; perTeam: Record<string, { goals: number; points: number }> }>>({});
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
   const [transferDeadline, setTransferDeadline] = useState<string>('');
   const [transfersAfterDeadline, setTransfersAfterDeadline] = useState(3);
@@ -141,58 +143,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getGoalsAfterPurchase = async (playerId: string, purchaseDate: string): Promise<number> => {
-    try {
-      // Converteer aankoopdatum naar start van de dag als er geen tijd is
-      let startDate = purchaseDate;
-      if (!purchaseDate.includes('T')) {
-        // Als er geen tijd is, gebruik start van de dag (00:00:00)
-        startDate = `${purchaseDate}T00:00:00Z`;
-      }
-
-      // Eerst proberen goals uit de goals tabel (individuele goal records)
-      const { data: goals, error: goalsError } = await supabase
-        .from('goals')
-        .select('*')
-        .eq('player_id', playerId)
-        .gte('created_at', startDate)
-        .order('created_at', { ascending: true });
-
-      if (goalsError) {
-        console.error('Error fetching goals from goals table:', goalsError);
-      }
-
-      // Als er goals zijn in de goals tabel, gebruik die
-      if (goals && goals.length > 0) {
-        console.log(`Goals uit goals tabel voor speler ${playerId} vanaf ${startDate}:`, goals.length);
-        return goals.length;
-      }
-
-      // Anders, probeer goals uit de players tabel (totaal aantal)
-      const { data: player, error: playerError } = await supabase
-        .from('players')
-        .select('goals')
-        .eq('id', playerId)
-        .single();
-
-      if (playerError) {
-        console.error('Error fetching player goals:', playerError);
-        return 0;
-      }
-
-      // Als de speler goals heeft, tel die mee (vereenvoudigde aanpak)
-      if (player && player.goals > 0) {
-        console.log(`Goals uit players tabel voor speler ${playerId}:`, player.goals);
-        return player.goals;
-      }
-
-      console.log(`Geen goals gevonden voor speler ${playerId} vanaf ${startDate}`);
-      return 0;
-    } catch (error) {
-      console.error('Error in getGoalsAfterPurchase:', error);
-      return 0;
-    }
-  };
+  // Verouderd helper; puntenberekening gebruikt nu individuele goals in venster
 
   const toggleTeam = (teamName: string) => {
     const newExpandedTeams = new Set(expandedTeams);
@@ -244,7 +195,7 @@ const Dashboard: React.FC = () => {
     try {
       console.log('Laden ranglijst...');
       
-      // Haal alle gebruikers op met hun teams en gebruikersgegevens
+      // Haal alle gebruikers op met hun teams en gebruikersgegevens (inclusief verkochte spelers)
       const { data: userTeamsData, error: userTeamsError } = await supabase
         .from('user_teams')
         .select(`
@@ -258,8 +209,7 @@ const Dashboard: React.FC = () => {
             goals,
             price
           )
-        `)
-        .is('sold_at', null);
+        `);
 
       if (userTeamsError) {
         console.error('Database error bij laden ranglijst:', userTeamsError);
@@ -294,15 +244,25 @@ const Dashboard: React.FC = () => {
       for (const userTeam of userTeamsData) {
         if (userTeam.players) {
           const player = userTeam.players as any;
-          const userId = userTeam.user_id;
+          const userId = userTeam.user_id as string;
           
           if (!userPoints[userId]) {
             userPoints[userId] = { points: 0, teamValue: 0, email: '', firstName: '' };
           }
           
-          // Bereken punten (alleen voor doelpunten na aankoop)
-          const goalsAfterPurchase = await getGoalsAfterPurchase(player.id, userTeam.bought_at);
-          userPoints[userId].points += goalsAfterPurchase * getTeamPoints(player.team);
+          // Bereken punten op basis van individuele goals tussen koop en verkoop
+          let q = supabase
+            .from('goals')
+            .select('*')
+            .eq('player_id', player.id)
+            .gte('created_at', userTeam.bought_at);
+          if (userTeam.sold_at) q = q.lt('created_at', userTeam.sold_at);
+          const { data: goalsInWindow } = await q;
+          const goals = goalsInWindow || [];
+          for (const g of goals as any[]) {
+            const teamName = g.team_code && g.team_code.trim() !== '' ? g.team_code : player.team;
+            userPoints[userId].points += getTeamPoints(teamName);
+          }
           
           // Voeg team waarde toe
           userPoints[userId].teamValue += player.price;
@@ -388,7 +348,7 @@ const Dashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      // Laad het team van de gebruiker
+      // Laad het actieve team (niet verkocht)
       const { data: teamData, error: teamError } = await supabase
         .from('user_teams')
         .select('*')
@@ -397,6 +357,14 @@ const Dashboard: React.FC = () => {
 
       if (teamError) throw teamError;
       setUserTeam(teamData || []);
+
+      // Laad alle team items (inclusief verkochte) voor puntenberekening
+      const { data: teamDataAll, error: teamAllError } = await supabase
+        .from('user_teams')
+        .select('*')
+        .eq('user_id', user?.id);
+      if (teamAllError) throw teamAllError;
+      setUserTeamAll(teamDataAll || []);
 
       // Load available players
       const { data: playersData, error: playersError } = await supabase
@@ -416,18 +384,47 @@ const Dashboard: React.FC = () => {
 
       setBudget(100000 - currentTeamValue);
 
-      // Calculate total points - ONLY for goals scored AFTER purchase
-      let totalPoints = 0;
-      for (const item of teamData || []) {
+      // Bereken punten op basis van individuele goals tussen koop en verkoop
+      const breakdown: Record<string, { totalPoints: number; totalGoals: number; perTeam: Record<string, { goals: number; points: number }> }> = {};
+      let aggregatePoints = 0;
+      for (const item of teamDataAll || []) {
         const player = playersData?.find(p => p.id === item.player_id);
-        if (player && item.bought_at) {
-          // Get goals scored after purchase date
-          const goalsAfterPurchase = await getGoalsAfterPurchase(player.id, item.bought_at);
-          totalPoints += goalsAfterPurchase * getTeamPoints(player.team);
+        if (!player || !item.bought_at) continue;
+
+        // Haal goals op binnen het bezit-venster
+        let query = supabase
+          .from('goals')
+          .select('*')
+          .eq('player_id', player.id)
+          .gte('created_at', item.bought_at);
+        if (item.sold_at) {
+          query = query.lt('created_at', item.sold_at);
+        }
+        const { data: goalsInWindow, error: goalsErr } = await query.order('created_at', { ascending: true });
+        if (goalsErr) {
+          console.error('Error fetching goals in window:', goalsErr);
+          continue;
+        }
+        const goals: Goal[] = goalsInWindow || [];
+        if (!goals.length) continue;
+
+        const perTeam: Record<string, { goals: number; points: number }> = {};
+        let playerPoints = 0;
+        for (const g of goals) {
+          const effectiveTeam = (g as any).team_code && (g as any).team_code.trim() !== '' ? (g as any).team_code as string : player.team;
+          const pts = getTeamPoints(effectiveTeam);
+          playerPoints += pts;
+          if (!perTeam[effectiveTeam]) perTeam[effectiveTeam] = { goals: 0, points: 0 };
+          perTeam[effectiveTeam].goals += 1;
+          perTeam[effectiveTeam].points += pts;
+        }
+        if (playerPoints > 0) {
+          breakdown[item.id] = { totalPoints: playerPoints, totalGoals: goals.length, perTeam };
+          aggregatePoints += playerPoints;
         }
       }
-
-      setTotalPoints(totalPoints);
+      setPointsBreakdown(breakdown);
+      setTotalPoints(aggregatePoints);
 
       // Note: transfers are now limited to max 3 players in team
 
@@ -964,52 +961,61 @@ const Dashboard: React.FC = () => {
             <div className="p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Punten per Speler</h3>
               
-              {userTeam.length === 0 ? (
+              {userTeamAll.length === 0 ? (
                 <div className="text-center py-8">
                   <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <h4 className="text-lg font-medium text-gray-900 mb-2">Nog geen spelers</h4>
                   <p className="text-gray-600">Koop spelers om punten te verdienen!</p>
                 </div>
               ) : (
-                                 <div className="space-y-4">
-                   {userTeam.map((item) => {
-                     const player = availablePlayers.find(p => p.id === item.player_id);
-                     if (!player) return null;
+                <div className="space-y-4">
+                  {userTeamAll
+                    .filter((item) => pointsBreakdown[item.id] && pointsBreakdown[item.id].totalPoints > 0)
+                    .map((item) => {
+                      const player = availablePlayers.find(p => p.id === item.player_id);
+                      if (!player) return null;
 
-                     // Gebruik de goals uit de players tabel als vereenvoudigde aanpak
-                     const goalsForPlayer = player.goals || 0;
-                     const pointsForPlayer = goalsForPlayer * getTeamPoints(player.team);
+                      const breakdown = pointsBreakdown[item.id];
+                      const pointsForPlayer = breakdown?.totalPoints || 0;
 
-                     return (
-                       <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                         <div className="flex justify-between items-start mb-3">
-                           <div>
-                             <h4 className="font-semibold text-gray-900">{player.name}</h4>
-                             <p className="text-sm text-gray-600">{player.team} • {player.position}</p>
-                             <p className="text-xs text-gray-500">Gekocht op: {new Date(item.bought_at).toLocaleDateString('nl-NL')}</p>
-                           </div>
-                           <div className="text-right">
-                             <span className="text-lg font-bold text-green-600">{pointsForPlayer} pt</span>
-                             <p className="text-sm text-gray-600">{getTeamPoints(player.team)} pt per goal</p>
-                           </div>
-                         </div>
-                         
-                         <div className="bg-gray-50 rounded-lg p-3">
-                           <div className="flex justify-between items-center">
-                             <span className="text-sm text-gray-600">Totaal doelpunten:</span>
-                             <span className="text-sm font-medium text-gray-900">{goalsForPlayer}</span>
-                           </div>
-                           <div className="flex justify-between items-center mt-1">
-                             <span className="text-sm text-gray-600">Berekening:</span>
-                             <span className="text-sm font-medium text-gray-900">
-                               {goalsForPlayer} × {getTeamPoints(player.team)} = {pointsForPlayer} pt
-                             </span>
-                           </div>
-                         </div>
-                       </div>
-                     );
-                   })}
-                 </div>
+                      return (
+                        <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{player.name}</h4>
+                              <p className="text-sm text-gray-600">{player.team} • {player.position}</p>
+                              <p className="text-xs text-gray-500">Gekocht op: {new Date(item.bought_at).toLocaleDateString('nl-NL')}</p>
+                              {item.sold_at && (
+                                <span className="inline-block mt-1 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Verkocht</span>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <span className="text-lg font-bold text-green-600">{pointsForPlayer} pt</span>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">Totaal doelpunten:</span>
+                              <span className="text-sm font-medium text-gray-900">{breakdown?.totalGoals || 0}</span>
+                            </div>
+                            {breakdown && Object.entries(breakdown.perTeam).map(([teamName, t]) => (
+                              <div key={teamName} className="flex justify-between items-center mt-1">
+                                <span className="text-sm text-gray-600">{teamName} aantal doelpunten:</span>
+                                <span className="text-sm font-medium text-gray-900">{t.goals}</span>
+                              </div>
+                            ))}
+                            {breakdown && Object.entries(breakdown.perTeam).map(([teamName, t]) => (
+                              <div key={teamName + '-calc'} className="flex justify-between items-center mt-1">
+                                <span className="text-sm text-gray-600">Berekening:</span>
+                                <span className="text-sm font-medium text-gray-900">{t.goals} × {getTeamPoints(teamName)} = {t.points} pt</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               )}
             </div>
           </div>
@@ -1019,9 +1025,10 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-blue-900 mb-3">Hoe werken de punten?</h3>
             <div className="space-y-2 text-sm text-blue-800">
               <p>• <strong>KOSC 1:</strong> 3 punten per doelpunt</p>
-              <p>• <strong>KOSC 2:</strong> 2,5 punten per doelpunt</p>
-              <p>• <strong>KOSC 3:</strong> 2 punten per doelpunt</p>
-              <p>• <strong>KOSC 4-8:</strong> 1 punt per doelpunt</p>
+              <p>• <strong>KOSC 2:</strong> 2 punten per doelpunt</p>
+              <p>• <strong>KOSC 3 t/m 7:</strong> 1 punt per doelpunt</p>
+              <p>• <strong>KOSC zaterdag 2/3:</strong> 1 punt per doelpunt</p>
+              <p>• <strong>KOSC A1:</strong> 1 punt per doelpunt</p>
               <p>• Je krijgt alleen punten voor doelpunten die <strong>na je aankoop</strong> worden gescoord</p>
             </div>
           </div>

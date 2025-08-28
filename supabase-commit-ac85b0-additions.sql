@@ -101,6 +101,20 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- Add team_code to goals for guest players if missing
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'goals' AND column_name = 'team_code'
+  ) THEN
+    -- already exists
+    NULL;
+  ELSE
+    EXECUTE 'ALTER TABLE public.goals ADD COLUMN team_code TEXT';
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_goals_team_code ON public.goals(team_code)';
+  END IF;
+END $$;
+
 -- Align setting key used by UI
 INSERT INTO game_settings (key, value, description)
 VALUES ('weekend_transfers_allowed', 'false', 'Of transfers in het weekend toegestaan zijn')

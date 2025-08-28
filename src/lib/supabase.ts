@@ -45,6 +45,7 @@ export interface Goal {
   id: string
   match_id: string
   player_id: string
+  team_code?: string | null
   minute: number
   created_at: string
 }
@@ -110,18 +111,28 @@ export interface Feedback {
 
 // Functie om punten per team te berekenen
 export const getTeamPoints = (team: string): number => {
+  // Normalize team string (e.g., 'KOSC 1', 'KOSC zaterdag 2/3', 'KOSC A1')
+  const normalized = team.trim();
   switch (team) {
     case 'KOSC 1':
       return 3
     case 'KOSC 2':
-      return 2.5
-    case 'KOSC 3':
       return 2
-    default:
-      if (team.startsWith('KOSC ') && parseInt(team.split(' ')[1]) >= 4) {
-        return 1
+    case 'KOSC zaterdag 2/3':
+      return 1
+    case 'KOSC A1':
+      return 1
+    default: {
+      // KOSC 3 t/m 7 => 1 punt per doelpunt
+      const m = normalized.match(/^KOSC\s+(\d+)$/i);
+      if (m) {
+        const teamNumber = parseInt(m[1], 10);
+        if (teamNumber >= 3 && teamNumber <= 7) return 1;
+        if (teamNumber === 1) return 3;
+        if (teamNumber === 2) return 2;
       }
       return 1
+    }
   }
 }
 
@@ -154,24 +165,24 @@ export const isTransferAllowed = async (): Promise<boolean> => {
 }
 
 // Functie om gebruikerspunten te berekenen
-export const calculateUserPoints = (goals: Goal[], userTeam: UserTeam[]): number => {
+export const calculateUserPoints = (
+  goals: Goal[],
+  userTeam: UserTeam[],
+  playerIdToTeam: Record<string, string>
+): number => {
   let totalPoints = 0
-  
-  goals.forEach(goal => {
-    const playerInTeam = userTeam.find(ut => 
-      ut.player_id === goal.player_id && 
-      ut.bought_at <= goal.created_at && 
+  for (const goal of goals) {
+    const ownedAtTime = userTeam.find(ut =>
+      ut.player_id === goal.player_id &&
+      ut.bought_at <= goal.created_at &&
       (ut.sold_at === null || ut.sold_at > goal.created_at)
     )
-    
-    if (playerInTeam) {
-      // Zoek speler om team te vinden
-      // Dit moet nog geïmplementeerd worden met echte speler opzoeken
-      // Voor nu nemen we aan dat het doelpunt team informatie heeft
-      totalPoints += 1 // Tijdelijke waarde
-    }
-  })
-  
+    if (!ownedAtTime) continue
+    const effectiveTeam = goal.team_code && goal.team_code.trim() !== ''
+      ? goal.team_code
+      : playerIdToTeam[goal.player_id]
+    totalPoints += getTeamPoints(effectiveTeam)
+  }
   return totalPoints
 }
 
