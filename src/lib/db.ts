@@ -146,6 +146,21 @@ export async function fetchGoalsForPlayerBetweenCount(playerId: string, fromIso:
   return data?.length ?? 0
 }
 
+export async function ensureUserExists(userId: string, email?: string | null, displayName?: string | null): Promise<boolean> {
+  const safeEmail = email || `${userId}@local`
+  const safeName = displayName || (email ? email.split('@')[0] : 'Gebruiker')
+  const { error } = await db
+    .from('users')
+    .upsert({ id: userId, email: safeEmail, display_name: safeName }, { onConflict: 'id' })
+    .select('id')
+    .single()
+  if (error) {
+    console.error('ensureUserExists error:', error)
+    return false
+  }
+  return true
+}
+
 export async function buyUserTeam(userId: string, playerId: string, price: number): Promise<boolean> {
   void price;
   const { error } = await db

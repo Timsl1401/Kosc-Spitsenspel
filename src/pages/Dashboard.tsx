@@ -11,6 +11,7 @@ import {
   buyUserTeam,
   sellUserTeam,
   fetchAllUserTeamsWithPlayers,
+  ensureUserExists,
 } from '../lib/db';
 import { Users, Trophy, Euro, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
 
@@ -415,6 +416,8 @@ const Dashboard: React.FC = () => {
     }
 
     try {
+      // Zorg dat user in users-tabel bestaat om FK-conflict te voorkomen
+      await ensureUserExists(user.id, user.email || null, user.email?.split('@')[0] || null);
       console.log('Inserting player into user_teams...');
       const ok = await buyUserTeam(user.id, player.id, player.price);
       if (!ok) throw new Error('Insert failed');
