@@ -146,6 +146,23 @@ export async function fetchGoalsForPlayerBetweenCount(playerId: string, fromIso:
   return data?.length ?? 0
 }
 
+export async function fetchGoalsForPlayerBetween(playerId: string, fromIso: string, toIso?: string): Promise<Array<{ team_code: string | null }>> {
+  let query = db
+    .from('goals')
+    .select('team_code, created_at')
+    .eq('player_id', playerId)
+    .gte('created_at', fromIso)
+
+  if (toIso) query = query.lt('created_at', toIso)
+
+  const { data, error } = await query.order('created_at', { ascending: true })
+  if (error) {
+    console.error('fetchGoalsForPlayerBetween error:', error)
+    return []
+  }
+  return (data || []) as Array<{ team_code: string | null }>
+}
+
 export async function ensureUserExists(userId: string, email?: string | null, displayName?: string | null): Promise<boolean> {
   const safeEmail = email || `${userId}@local`
   const safeName = displayName || (email ? email.split('@')[0] : 'Gebruiker')
@@ -291,6 +308,19 @@ export async function adminInsertGoal(payload: { match_id: string; player_id: st
     .insert([{ match_id: payload.match_id, player_id: payload.player_id }])
   if (error) {
     console.error('adminInsertGoal error:', error)
+    return false
+  }
+  return true
+}
+
+export async function adminInsertGoalWithTeam(payload: { match_id: string | null; player_id: string; team_code?: string | null; created_at?: string | null }): Promise<boolean> {
+  const row: any = { player_id: payload.player_id }
+  if (payload.match_id) row.match_id = payload.match_id
+  if (payload.team_code) row.team_code = payload.team_code
+  if (payload.created_at) row.created_at = payload.created_at
+  const { error } = await db.from('goals').insert([row])
+  if (error) {
+    console.error('adminInsertGoalWithTeam error:', error)
     return false
   }
   return true

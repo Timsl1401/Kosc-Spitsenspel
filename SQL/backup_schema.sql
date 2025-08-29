@@ -33,6 +33,7 @@ create table if not exists goals (
   id uuid primary key default uuid_generate_v4(),
   match_id uuid not null references matches(id) on delete cascade,
   player_id uuid not null references players(id) on delete cascade,
+  team_code text,
   minute integer,
   created_at timestamptz not null default now()
 );
@@ -68,6 +69,7 @@ create table if not exists admin_emails (
 create index if not exists idx_user_teams_user on user_teams(user_id);
 create index if not exists idx_user_teams_player_bought_sold on user_teams(player_id, bought_at, sold_at);
 create index if not exists idx_goals_player_created on goals(player_id, created_at);
+create index if not exists idx_goals_player_teamcode on goals(player_id, team_code, created_at);
 create index if not exists idx_goals_match on goals(match_id);
 create index if not exists idx_matches_date on matches(match_date);
 

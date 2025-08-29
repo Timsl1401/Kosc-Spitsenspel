@@ -8,6 +8,7 @@ import {
   fetchSettingValue,
   countUserBuysAfter,
   fetchGoalsForPlayerBetweenCount,
+  fetchGoalsForPlayerBetween,
   buyUserTeam,
   sellUserTeam,
   fetchAllUserTeamsWithPlayers,
@@ -352,13 +353,13 @@ const Dashboard: React.FC = () => {
         const player = playersData?.find(p => p.id === item.player_id);
         if (!player || !item.bought_at) continue;
 
-        const count = await fetchGoalsForPlayerBetweenCount(player.id, item.bought_at, item.sold_at || undefined);
-        if (!count) continue;
+        const goals = await fetchGoalsForPlayerBetween(player.id, item.bought_at, item.sold_at || undefined);
+        if (!goals.length) continue;
 
         const perTeam: Record<string, { goals: number; points: number }> = {};
         let playerPoints = 0;
-        for (let i = 0; i < count; i++) {
-          const effectiveTeam = player.team;
+        for (const g of goals) {
+          const effectiveTeam = g.team_code && g.team_code.trim() !== '' ? g.team_code : player.team;
           const pts = getTeamPointsSync(effectiveTeam);
           playerPoints += pts;
           if (!perTeam[effectiveTeam]) perTeam[effectiveTeam] = { goals: 0, points: 0 };
@@ -366,7 +367,7 @@ const Dashboard: React.FC = () => {
           perTeam[effectiveTeam].points += pts;
         }
         if (playerPoints > 0) {
-          breakdown[item.id] = { totalPoints: playerPoints, totalGoals: count, perTeam };
+          breakdown[item.id] = { totalPoints: playerPoints, totalGoals: goals.length, perTeam };
           aggregatePoints += playerPoints;
         }
       }
