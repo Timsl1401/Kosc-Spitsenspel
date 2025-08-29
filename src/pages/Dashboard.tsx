@@ -235,8 +235,10 @@ const Dashboard: React.FC = () => {
             userPoints[userId].points += getTeamPointsSync(teamName);
           }
           
-          // Voeg team waarde toe (maximaal 15 spelers, d.w.z. nooit > €100M bij start)
-          userPoints[userId].teamValue += player.price;
+          // Teamwaarde = som van ACTIEVE spelers (verkochte niet meetellen)
+          if (!userTeam.sold_at) {
+            userPoints[userId].teamValue += player.price;
+          }
         
       }
 
