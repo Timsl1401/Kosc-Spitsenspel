@@ -20,12 +20,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
                      {/* Hoofdheader met logo, feedback en uitlog */}
-               <div className="kosc-header" style={{ backgroundImage: "url('/FotoKosc%20Zwart%20Wit.jpg'), url('/kosc-field.svg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+               <div className="kosc-header" style={{ backgroundImage: "linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('/FotoKosc%20Zwart%20Wit.jpg'), url('/kosc-field.svg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                  <div className="container mx-auto px-4 py-4">
                    <div className="grid grid-cols-3 items-center">
                      {/* Feedback link links */}
                      <div className="flex justify-start">
-                       <Link to="/feedback" className="text-white hover:text-green-400 transition-colors text-sm md:text-base">
+                       <Link to="/feedback" className="text-white hover:text-green-400 transition-colors text-sm md:text-base" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>
                          FEEDBACK
                        </Link>
                      </div>
@@ -42,7 +42,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                              />
                            </div>
                          </div>
-                         <div className="text-white font-bold text-lg md:text-xl lg:text-2xl mt-2">
+                         <div className="text-white font-bold text-lg md:text-xl lg:text-2xl mt-2" style={{ textShadow: '0 3px 6px rgba(0,0,0,0.7)' }}>
                            KOSC SPITSENSPEL
                          </div>
                        </div>
@@ -52,7 +52,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                      <div className="flex justify-end">
                        {user && (
                          <div className="flex items-center space-x-2 md:space-x-4">
-                           <span className="text-white text-sm md:text-base hidden sm:block">Welkom, {user.user_metadata?.first_name || user.email}</span>
+                           <span className="text-white text-sm md:text-base hidden sm:block" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>Welkom, {user.user_metadata?.first_name || user.email}</span>
                            <button
                              onClick={handleSignOut}
                              className="bg-red-600 hover:bg-red-700 text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2 rounded-md transition-colors"
