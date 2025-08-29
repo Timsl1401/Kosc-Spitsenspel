@@ -31,27 +31,30 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
 
   // Load admin emails from database
-  useEffect(() => {
-    const loadAdminEmails = async () => {
-      try {
-        const emails = await getAdminEmails();
-        setAdminEmails(emails);
-      } catch (error) {
-        console.error('Error loading admin emails:', error);
-        // Fallback naar hardcoded emails
-        setAdminEmails(['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com', 'Nickveldhuis25@gmail.com']);
-      }
-    };
+  const loadAdminEmailsSafe = async () => {
+    try {
+      const emails = await getAdminEmails();
+      setAdminEmails(emails);
+    } catch (error) {
+      console.error('Error loading admin emails:', error);
+      setAdminEmails(['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com', 'Nickveldhuis25@gmail.com']);
+    }
+  };
 
-    loadAdminEmails();
+  // Load on mount
+  useEffect(() => {
+    loadAdminEmailsSafe();
   }, []);
+
+  // Re-load when user changes (e.g., after login)
+  useEffect(() => {
+    loadAdminEmailsSafe();
+  }, [user?.email]);
 
   useEffect(() => {
     if (user && user.email) {
-      // Check if user is admin
-      const isAdminUser = adminEmails.some(adminEmail => 
-        adminEmail.toLowerCase() === user.email!.toLowerCase()
-      );
+      const userEmail = user.email.trim().toLowerCase();
+      const isAdminUser = adminEmails.some(e => e.trim().toLowerCase() === userEmail);
       setIsAdmin(isAdminUser);
     } else {
       setIsAdmin(false);
