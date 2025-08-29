@@ -224,7 +224,7 @@ const Dashboard: React.FC = () => {
           const userId = userTeam.user_id as string;
           
           if (!userPoints[userId]) {
-            const label = (userTeam as any).user?.display_name || (userTeam as any).user?.email?.split('@')[0] || `Speler ${userId.slice(0,6)}`;
+            const label = (userTeam as any).user?.display_name || (userTeam as any).user?.email || `Speler ${userId.slice(0,6)}`;
             userPoints[userId] = { points: 0, teamValue: 0, label };
           }
           
