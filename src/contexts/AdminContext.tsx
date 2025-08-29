@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { getAdminEmails, addAdminEmail as addAdminEmailToDB, removeAdminEmail as removeAdminEmailFromDB } from '../lib/supabase';
+import { getAdminEmails, addAdminEmail as addAdminEmailToDB, removeAdminEmail as removeAdminEmailFromDB } from '../lib/db';
 
 interface AdminContextType {
   isAdmin: boolean;

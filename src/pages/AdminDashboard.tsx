@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../contexts/AdminContext';
-import { getTeamPoints } from '../lib/supabase';
+import { getTeamPoints } from '../lib/gameLogic';
 import {
   adminFetchPlayers,
   adminInsertPlayer,

@@ -1,6 +1,6 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { SupabaseProvider } from './contexts/SupabaseContext'
+// Removed SupabaseProvider; DB access is direct via lib/db
 import { AuthProvider } from './contexts/AuthContext'
 import { AdminProvider } from './contexts/AdminContext'
 import Layout from './components/Layout'
@@ -99,9 +99,8 @@ function App() {
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <SupabaseProvider>
-        <AuthProvider>
-          <AdminProvider>
+      <AuthProvider>
+        <AdminProvider>
             <Router>
               <Layout>
                 <Routes>
@@ -160,7 +159,6 @@ function App() {
             </Router>
           </AdminProvider>
         </AuthProvider>
-      </SupabaseProvider>
     </ErrorBoundary>
   )
 }

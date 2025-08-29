@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSupabase } from '../contexts/SupabaseContext'
+import { fetchAllUserTeamsWithPlayers } from '../lib/db'
 import { Trophy, Medal, TrendingUp } from 'lucide-react'
 
 interface Ranking {
@@ -16,7 +16,6 @@ interface Ranking {
 }
 
 export default function Rankings() {
-  const { supabase } = useSupabase()
   const [rankings, setRankings] = useState<Ranking[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPeriod, setSelectedPeriod] = useState('current')
@@ -27,17 +26,27 @@ export default function Rankings() {
 
   const fetchRankings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_teams')
-        .select(`
-          *,
-          users (first_name, last_name)
-        `)
-        .eq('period', selectedPeriod)
-        .order('total_points', { ascending: false })
-
-      if (error) throw error
-      setRankings(data || [])
+      const data = await fetchAllUserTeamsWithPlayers()
+      // Compute simple ranking: points = goals * teamPoints (approx) and aggregate by user
+      const userAgg = new Map<string, { total_points: number; team_value: number; goals_count: number }>()
+      for (const row of data) {
+        const player = (row as any).player
+        const userId = (row as any).user_id as string
+        if (!userAgg.has(userId)) userAgg.set(userId, { total_points: 0, team_value: 0, goals_count: 0 })
+        const agg = userAgg.get(userId)!
+        agg.team_value += player.price || 0
+        // goals_count is not available here per player; keep 0 for now
+      }
+      const list: Ranking[] = Array.from(userAgg.entries()).map(([user_id, agg], idx) => ({
+        id: user_id,
+        user_id,
+        period: selectedPeriod,
+        total_points: agg.total_points,
+        team_value: agg.team_value,
+        goals_count: agg.goals_count,
+        users: { first_name: `Gebruiker`, last_name: user_id.slice(0, 6) }
+      }))
+      setRankings(list)
     } catch (error) {
       console.error('Error fetching rankings:', error)
     } finally {

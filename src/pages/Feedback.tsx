@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Send, MessageSquare, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/db';
 
 const Feedback: React.FC = () => {
   const { user } = useAuth();
@@ -22,7 +22,7 @@ const Feedback: React.FC = () => {
 
     try {
       // Save feedback to database
-      const { error } = await supabase
+      const { error } = await db
         .from('feedback')
         .insert({
           name: formData.name,

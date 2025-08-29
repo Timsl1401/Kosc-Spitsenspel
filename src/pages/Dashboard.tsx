@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getTeamPoints, isTransferAllowed } from '../lib/supabase';
+import { getTeamPoints, isTransferAllowed } from '../lib/gameLogic';
 import { 
   fetchPlayersSorted,
   fetchUserTeamActive,

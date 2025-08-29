@@ -324,6 +324,34 @@ export async function adminFetchFeedback(): Promise<any[]> {
   return data as any[]
 }
 
+// Admin emails simple helpers (KV list in admin_emails)
+export async function getAdminEmails(): Promise<string[]> {
+  const { data, error } = await db.from('admin_emails').select('email').order('email')
+  if (error) {
+    console.error('getAdminEmails error:', error)
+    return ['timsl.tsl@gmail.com', 'Henkgerardus51@gmail.com', 'Nickveldhuis25@gmail.com']
+  }
+  return (data || []).map((r: any) => r.email)
+}
+
+export async function addAdminEmail(email: string): Promise<boolean> {
+  const { error } = await db.from('admin_emails').insert({ email: email.toLowerCase() })
+  if (error) {
+    console.error('addAdminEmail error:', error)
+    return false
+  }
+  return true
+}
+
+export async function removeAdminEmail(email: string): Promise<boolean> {
+  const { error } = await db.from('admin_emails').delete().eq('email', email.toLowerCase())
+  if (error) {
+    console.error('removeAdminEmail error:', error)
+    return false
+  }
+  return true
+}
+
 export async function adminFetchUserTeamsWithPlayersByUser(userId: string): Promise<Array<{ bought_at: string; sold_at: string | null; player: { id: string; name: string; team: string; price: number } }>> {
   const { data, error } = await db
     .from('user_teams')
