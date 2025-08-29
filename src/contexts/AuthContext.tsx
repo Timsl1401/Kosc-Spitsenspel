@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    db.auth.getSession().then(async ({ data, error }) => {
+    db.auth.getSession().then(({ data, error }) => {
       if (error) console.error('getSession error:', error)
       setSession(data?.session ?? null)
       setUser((data?.session?.user as any) ?? null)
@@ -38,12 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     ? `${u.user_metadata.first_name} ${u.user_metadata.last_name}`
                     : (u.user_metadata?.first_name || null)) ||
                    (u.email ? u.email.split('@')[0] : null)
-        await ensureUserExists(u.id, u.email || null, dn)
+        ensureUserExists(u.id, u.email || null, dn).catch(() => {})
       }
       setLoading(false)
     })
 
-    const { data: subscription } = db.auth.onAuthStateChange(async (_event, s) => {
+    const { data: subscription } = db.auth.onAuthStateChange((_event, s) => {
       setSession(s)
       setUser((s?.user as any) ?? null)
       setIsEmailConfirmed(!!(s?.user as any)?.email_confirmed_at)
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     ? `${u.user_metadata.first_name} ${u.user_metadata.last_name}`
                     : (u.user_metadata?.first_name || null)) ||
                    (u.email ? u.email.split('@')[0] : null)
-        await ensureUserExists(u.id, u.email || null, dn)
+        ensureUserExists(u.id, u.email || null, dn).catch(() => {})
       }
       setLoading(false)
     })
