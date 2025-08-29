@@ -697,6 +697,7 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Updating game setting:', { key, value });
       
+      // Use upsert so missing keys are created automatically
       const { data, error } = await supabase
         .from('game_settings')
         .upsert({ key, value }, { onConflict: 'key' })

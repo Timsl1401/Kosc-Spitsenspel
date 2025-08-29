@@ -27,6 +27,7 @@ const Dashboard: React.FC = () => {
   const [transferAllowed, setTransferAllowed] = useState(true);
   const [topScorers, setTopScorers] = useState<Array<{ player_id: string; name: string; team: string; position: string; goals: number }>>([]);
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [teamPointsData, setTeamPointsData] = useState<Record<string, number>>({});
 
 
   const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
@@ -35,6 +36,36 @@ const Dashboard: React.FC = () => {
     setTimeout(() => {
       setNotification(null);
     }, 3000);
+  };
+
+  // Helper functie om team points synchronously te krijgen
+  const getTeamPointsSync = (teamName: string): number => {
+    return teamPointsData[teamName] || 1.0; // Default naar 1.0 als niet geladen
+  };
+
+  // Laad team points data
+  const loadTeamPoints = async () => {
+    try {
+      const uniqueTeams = [...new Set(availablePlayers.map(p => p.team))];
+      const pointsData: Record<string, number> = {};
+
+      for (const team of uniqueTeams) {
+        try {
+          const points = await getTeamPoints(team);
+          pointsData[team] = points;
+        } catch (error) {
+          console.error(`Error loading points for team ${team}:`, error);
+          // Fallback naar hardcoded waarden
+          pointsData[team] = team === 'KOSC 1' ? 3.0 :
+                           team === 'KOSC 2' ? 2.5 :
+                           team === 'KOSC 3' ? 2.0 : 1.0;
+        }
+      }
+
+      setTeamPointsData(pointsData);
+    } catch (error) {
+      console.error('Error loading team points:', error);
+    }
   };
 
   const loadTransferStatus = async () => {
@@ -261,7 +292,7 @@ const Dashboard: React.FC = () => {
           const goals = goalsInWindow || [];
           for (const g of goals as any[]) {
             const teamName = g.team_code && g.team_code.trim() !== '' ? g.team_code : player.team;
-            userPoints[userId].points += getTeamPoints(teamName);
+            userPoints[userId].points += getTeamPointsSync(teamName);
           }
           
           // Voeg team waarde toe
@@ -335,6 +366,13 @@ const Dashboard: React.FC = () => {
       loadTopScorers();
     }
   }, [user]);
+
+  // Laad team points wanneer availablePlayers verandert
+  useEffect(() => {
+    if (availablePlayers.length > 0) {
+      loadTeamPoints();
+    }
+  }, [availablePlayers]);
 
   useEffect(() => {
     if (activeTab === 'topscorers') {
@@ -412,7 +450,7 @@ const Dashboard: React.FC = () => {
         let playerPoints = 0;
         for (const g of goals) {
           const effectiveTeam = (g as any).team_code && (g as any).team_code.trim() !== '' ? (g as any).team_code as string : player.team;
-          const pts = getTeamPoints(effectiveTeam);
+          const pts = getTeamPointsSync(effectiveTeam);
           playerPoints += pts;
           if (!perTeam[effectiveTeam]) perTeam[effectiveTeam] = { goals: 0, points: 0 };
           perTeam[effectiveTeam].goals += 1;
@@ -476,6 +514,7 @@ const Dashboard: React.FC = () => {
           user_id: user.id,
           player_id: player.id,
           bought_at: new Date().toISOString(),
+          bought_price: player.price,
           points_earned: 0
         })
         .select();
@@ -772,7 +811,7 @@ const Dashboard: React.FC = () => {
                         <p className="text-sm text-gray-600">{player.position}</p>
                       </div>
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                        {getTeamPoints(player.team)} pt
+                        {getTeamPointsSync(player.team)} pt
                       </span>
                     </div>
                     
@@ -1008,7 +1047,7 @@ const Dashboard: React.FC = () => {
                             {breakdown && Object.entries(breakdown.perTeam).map(([teamName, t]) => (
                               <div key={teamName + '-calc'} className="flex justify-between items-center mt-1">
                                 <span className="text-sm text-gray-600">Berekening:</span>
-                                <span className="text-sm font-medium text-gray-900">{t.goals} × {getTeamPoints(teamName)} = {t.points} pt</span>
+                                <span className="text-sm font-medium text-gray-900">{t.goals} × {getTeamPointsSync(teamName)} = {t.points} pt</span>
                               </div>
                             ))}
                           </div>
@@ -1072,7 +1111,7 @@ const Dashboard: React.FC = () => {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <span className="text-sm font-medium text-green-600">
-                                    {getTeamPoints(teamName)} pt per doelpunt
+                                    {getTeamPointsSync(teamName)} pt per doelpunt
                                   </span>
                                   <svg
                                     className={`w-5 h-5 text-gray-500 transform transition-transform ${
@@ -1099,7 +1138,7 @@ const Dashboard: React.FC = () => {
                                           <p className="text-sm text-gray-600">{player.position}</p>
                                         </div>
                                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                          {getTeamPoints(player.team)} pt
+                                          {getTeamPointsSync(player.team)} pt
                                         </span>
                                       </div>
                                       
@@ -1166,7 +1205,7 @@ const Dashboard: React.FC = () => {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <span className="text-sm font-medium text-green-600">
-                                    {getTeamPoints(teamName)} pt per doelpunt
+                                    {getTeamPointsSync(teamName)} pt per doelpunt
                                   </span>
                                   <svg
                                     className={`w-5 h-5 text-gray-500 transform transition-transform ${
@@ -1193,7 +1232,7 @@ const Dashboard: React.FC = () => {
                                           <p className="text-sm text-gray-600">{player.position}</p>
                                         </div>
                                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                          {getTeamPoints(player.team)} pt
+                                          {getTeamPointsSync(player.team)} pt
                                         </span>
                                       </div>
                                       
@@ -1261,7 +1300,7 @@ const Dashboard: React.FC = () => {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <span className="text-sm font-medium text-green-600">
-                                    {getTeamPoints(teamName)} pt per doelpunt
+                                    {getTeamPointsSync(teamName)} pt per doelpunt
                                   </span>
                                   <svg
                                     className={`w-5 h-5 text-gray-500 transform transition-transform ${
@@ -1288,7 +1327,7 @@ const Dashboard: React.FC = () => {
                                           <p className="text-sm text-gray-600">{player.position}</p>
                                         </div>
                                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                          {getTeamPoints(player.team)} pt
+                                          {getTeamPointsSync(player.team)} pt
                                         </span>
                                       </div>
                                       
