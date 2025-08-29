@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-type User = { id: string; email?: string | null; user_metadata?: Record<string, any> }
-type Session = null
+import { db } from '../lib/db'
+
+type User = { id: string; email?: string | null; user_metadata?: Record<string, any>; email_confirmed_at?: string | null }
+type Session = any
 
 
 interface AuthContextType {
@@ -22,35 +24,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(false)
 
   useEffect(() => {
-    // Minimal local auth: anonymous user by default
-    setUser(null)
-    setSession(null)
-    setIsEmailConfirmed(true)
-    setLoading(false)
+    // Get initial session
+    db.auth.getSession().then(({ data, error }) => {
+      if (error) console.error('getSession error:', error)
+      setSession(data?.session ?? null)
+      setUser((data?.session?.user as any) ?? null)
+      setIsEmailConfirmed(!!(data?.session?.user as any)?.email_confirmed_at)
+      setLoading(false)
+    })
+
+    const { data: subscription } = db.auth.onAuthStateChange((_event, s) => {
+      setSession(s)
+      setUser((s?.user as any) ?? null)
+      setIsEmailConfirmed(!!(s?.user as any)?.email_confirmed_at)
+      setLoading(false)
+    })
+
+    return () => {
+      subscription.subscription.unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    // Local stub: treat any credentials as a login
-    const anonUser: User = { id: 'local-user', email }
-    setUser(anonUser)
-    return { success: true, message: 'Ingelogd (lokaal)' }
+    const { data, error } = await db.auth.signInWithPassword({ email, password })
+    if (error) return { success: false, message: error.message }
+    if (data.user && !(data.user as any).email_confirmed_at) {
+      return { success: false, message: 'Bevestig eerst je e‑mail.' }
+    }
+    return { success: true, message: 'Succesvol ingelogd!' }
   }
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    // Local stub: auto-login
-    const anonUser: User = { id: 'local-user', email, user_metadata: { first_name: firstName, last_name: lastName } }
-    setUser(anonUser)
-    return { success: true, message: 'Account aangemaakt (lokaal)' }
+    const { data, error } = await db.auth.signUp({
+      email,
+      password,
+      options: { data: { first_name: firstName, last_name: lastName } },
+    })
+    if (error) return { success: false, message: error.message }
+    if (data.user) return { success: true, message: 'Account aangemaakt. Check je e‑mail om te bevestigen.' }
+    return { success: true, message: 'Account aangemaakt.' }
   }
 
   const signOut = async () => {
-    setUser(null)
-    setSession(null)
+    const { error } = await db.auth.signOut()
+    if (error) throw error
   }
-
-
-
-
 
   const value = {
     user,
