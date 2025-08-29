@@ -7,7 +7,6 @@ import {
   fetchUserTeamAll,
   fetchSettingValue,
   countUserBuysAfter,
-  fetchGoalsForPlayerBetweenCount,
   fetchGoalsForPlayerBetween,
   buyUserTeam,
   sellUserTeam,
@@ -231,10 +230,10 @@ const Dashboard: React.FC = () => {
           }
           
           // Bereken punten op basis van individuele goals tussen koop en verkoop
-          const count = await fetchGoalsForPlayerBetweenCount(player.id, userTeam.bought_at, userTeam.sold_at || undefined);
-          for (let i = 0; i < count; i++) {
-            const teamName = player.team;
-            userPoints[userId].points += getTeamPointsSync(teamName);
+          const goals = await fetchGoalsForPlayerBetween(player.id, userTeam.bought_at, userTeam.sold_at || undefined);
+          for (const g of goals) {
+            const effectiveTeam = g.team_code && g.team_code.trim() !== '' ? g.team_code : player.team;
+            userPoints[userId].points += getTeamPoints(effectiveTeam);
           }
           
           // Teamwaarde = som van ACTIEVE spelers (verkochte niet meetellen)
@@ -356,7 +355,7 @@ const Dashboard: React.FC = () => {
         let playerPoints = 0;
         for (const g of goals) {
           const effectiveTeam = g.team_code && g.team_code.trim() !== '' ? g.team_code : player.team;
-          const pts = getTeamPointsSync(effectiveTeam);
+          const pts = getTeamPoints(effectiveTeam);
           playerPoints += pts;
           if (!perTeam[effectiveTeam]) perTeam[effectiveTeam] = { goals: 0, points: 0 };
           perTeam[effectiveTeam].goals += 1;
@@ -562,7 +561,7 @@ const Dashboard: React.FC = () => {
           <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative">
             <strong className="font-bold">Transfer Deadline Info</strong>
             <span className="block sm:inline"> 
-              Je kunt spelers kopen tot {new Date(transferDeadline).toLocaleDateString('nl-NL')}. 
+               Je kunt spelers kopen tot {new Date(transferDeadline).toLocaleDateString('nl-NL')}. 
               Daarna kun je nog maximaal 3 nieuwe spelers kopen om je team te verbeteren.
             </span>
           </div>

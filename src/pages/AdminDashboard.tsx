@@ -15,6 +15,7 @@ import {
   adminFetchUserTeamsWithPlayersByUser,
   adminDeleteUserTeams,
   fetchAllUserTeamsWithPlayers,
+  fetchGoalsForPlayerBetween,
 } from '../lib/db';
 import { Shield, Users, Target, AlertTriangle, Plus, Edit, Trash2, Save, X, Calendar, MessageSquare } from 'lucide-react';
 
@@ -353,11 +354,12 @@ const AdminDashboard: React.FC = () => {
         stats.team_count++;
         stats.team_value += player.price || 0;
         
-        // Bereken punten (vereenvoudigde aanpak)
-        const goalsForPlayer = player.goals || 0;
-        const teamPoints = await getTeamPoints(player.team);
-        const pointsForPlayer = goalsForPlayer * teamPoints;
-        stats.total_points += pointsForPlayer;
+        // Bereken punten op basis van goals tussen koop en verkoop, incl. gastteam-code
+        const goals = await fetchGoalsForPlayerBetween(player.id, userTeam.bought_at, userTeam.sold_at || undefined);
+        for (const g of goals) {
+          const effectiveTeam = (g as any).team_code && (g as any).team_code.trim() !== '' ? (g as any).team_code : player.team;
+          stats.total_points += getTeamPoints(effectiveTeam);
+        }
       }
 
       // Haal gebruikersprofielen op
@@ -408,18 +410,21 @@ const AdminDashboard: React.FC = () => {
       const user = users.find(u => u.id === userId);
       if (!user || !userTeams) return;
 
-      // Bereken punten per speler
+      // Bereken punten per speler (tussen koop en verkoop) met gastteam-codes
       const teamDetails = await Promise.all(userTeams.map(async (userTeam: any) => {
         const player = userTeam.player as any;
-        const goalsForPlayer = player.goals || 0;
-        const teamPoints = await getTeamPoints(player.team);
-        const pointsForPlayer = goalsForPlayer * teamPoints;
+        const goals = await fetchGoalsForPlayerBetween(player.id, userTeam.bought_at, userTeam.sold_at || undefined);
+        let pointsForPlayer = 0;
+        for (const g of goals) {
+          const effectiveTeam = (g as any).team_code && (g as any).team_code.trim() !== '' ? (g as any).team_code : player.team;
+          pointsForPlayer += getTeamPoints(effectiveTeam);
+        }
         
         return {
           name: player.name,
           team: player.team,
           position: player.position,
-          goals: goalsForPlayer,
+          goals: goals.length,
           points: pointsForPlayer,
           price: player.price,
           boughtAt: new Date(userTeam.bought_at).toLocaleDateString('nl-NL')
@@ -468,11 +473,11 @@ const AdminDashboard: React.FC = () => {
 
       for (const userTeam of userTeams || []) {
         const player = (userTeam as any).player as any;
-        const goalsForPlayer = player.goals || 0;
-        const teamPoints = await getTeamPoints(player.team);
-        const pointsForPlayer = goalsForPlayer * teamPoints;
-        
-        totalPoints += pointsForPlayer;
+        const goals = await fetchGoalsForPlayerBetween(player.id, userTeam.bought_at, userTeam.sold_at || undefined);
+        for (const g of goals) {
+          const effectiveTeam = (g as any).team_code && (g as any).team_code.trim() !== '' ? (g as any).team_code : player.team;
+          totalPoints += getTeamPoints(effectiveTeam);
+        }
         teamValue += player.price || 0;
         teamCount++;
       }
