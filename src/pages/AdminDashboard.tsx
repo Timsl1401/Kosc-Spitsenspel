@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../contexts/AdminContext';
-import { supabase, getTeamPoints } from '../lib/supabase';
+import { getTeamPoints } from '../lib/supabase';
+import {
+  adminFetchPlayers,
+  adminInsertPlayer,
+  adminUpdatePlayer,
+  adminDeletePlayer,
+  adminCreateMatch,
+  adminInsertGoal,
+  adminIncrementPlayerGoals,
+  adminFetchGameSettings,
+  adminUpsertGameSetting,
+  adminFetchFeedback,
+  adminFetchUserTeamsWithPlayersByUser,
+  adminDeleteUserTeams,
+  fetchAllUserTeamsWithPlayers,
+} from '../lib/db';
 import { Shield, Users, Target, AlertTriangle, Plus, Edit, Trash2, Save, X, Calendar, MessageSquare } from 'lucide-react';
 
 interface Player {
@@ -115,29 +130,14 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Checking database status...');
       
-      // Check if players table exists and is accessible
-      const { data: playersData, error: playersError } = await supabase
-        .from('players')
-        .select('count')
-        .limit(1);
+      const playersData = await adminFetchPlayers();
+      console.log('Players table check:', { count: playersData.length });
       
-      console.log('Players table check:', { data: playersData, error: playersError });
+      const settingsData = await adminFetchGameSettings();
+      console.log('Game settings table check:', { count: settingsData.length });
       
-      // Check if game_settings table exists and is accessible
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('game_settings')
-        .select('count')
-        .limit(1);
-      
-      console.log('Game settings table check:', { data: settingsData, error: settingsError });
-      
-      // Check if feedback table exists and is accessible
-      const { data: feedbackData, error: feedbackError } = await supabase
-        .from('feedback')
-        .select('count')
-        .limit(1);
-      
-      console.log('Feedback table check:', { data: feedbackData, error: feedbackError });
+      const feedbackData = await adminFetchFeedback();
+      console.log('Feedback table check:', { count: feedbackData.length });
       
     } catch (error) {
       console.error('Database status check failed:', error);
@@ -146,14 +146,8 @@ const AdminDashboard: React.FC = () => {
 
   const loadPlayers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('players')
-        .select('*')
-        .order('team', { ascending: true })
-        .order('name', { ascending: true });
-
-      if (error) throw error;
-      setPlayers(data || []);
+      const data = await adminFetchPlayers();
+      setPlayers(data as any);
     } catch (error) {
       console.error('Error loading players:', error);
     }
@@ -183,17 +177,9 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Adding player:', newPlayer);
       
-      const { data, error } = await supabase
-        .from('players')
-        .insert([newPlayer])
-        .select();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Player added successfully:', data);
+      const created = await adminInsertPlayer(newPlayer as any);
+      if (!created) throw new Error('Insert failed');
+      console.log('Player added successfully:', created);
 
       // Reset form and reload
       setNewPlayer({ name: '', team: '', position: '', price: 0, goals: 0 });
@@ -211,24 +197,15 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Updating player:', editingPlayer);
       
-      const { data, error } = await supabase
-        .from('players')
-        .update({
-          name: editingPlayer.name,
-          team: editingPlayer.team,
-          position: editingPlayer.position,
-          price: editingPlayer.price,
-          goals: editingPlayer.goals
-        })
-        .eq('id', editingPlayer.id)
-        .select();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Player updated successfully:', data);
+      const updated = await adminUpdatePlayer(editingPlayer.id, {
+        name: editingPlayer.name,
+        team: editingPlayer.team,
+        position: editingPlayer.position,
+        price: editingPlayer.price,
+        goals: editingPlayer.goals
+      } as any);
+      if (!updated) throw new Error('Update failed');
+      console.log('Player updated successfully:', updated);
 
       setEditingPlayer(null);
       await loadPlayers();
@@ -245,18 +222,9 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Deleting player:', playerId);
       
-      const { data, error } = await supabase
-        .from('players')
-        .delete()
-        .eq('id', playerId)
-        .select();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Player deleted successfully:', data);
+      const ok = await adminDeletePlayer(playerId);
+      if (!ok) throw new Error('Delete failed');
+      console.log('Player deleted successfully');
 
       await loadPlayers();
       alert('Speler succesvol verwijderd!');
@@ -282,57 +250,28 @@ const AdminDashboard: React.FC = () => {
       let matchId = null;
       if (matchDate && matchType) {
         const competition = matchType === 'competition' ? 'competitie' : 'beker';
-        const { data: matchData, error: matchError } = await supabase
-          .from('matches')
-          .insert({
-            home_team: 'KOSC 1', // Default team, can be made configurable
-            away_team: 'Tegenstander',
-            match_date: matchDate,
-            competition: competition,
-            status: 'finished',
-            is_competitive: true
-          })
-          .select()
-          .single();
-
-        if (matchError) {
-          console.error('Error creating match:', matchError);
-          throw matchError;
-        }
-        matchId = matchData.id;
+        const newMatchId = await adminCreateMatch({
+          home_team: 'KOSC 1',
+          away_team: 'Tegenstander',
+          match_date: matchDate,
+          competition_type: competition,
+          home_score: null,
+          away_score: null,
+        });
+        if (!newMatchId) throw new Error('Error creating match');
+        matchId = newMatchId;
       }
 
       // Add goals to the goals table
       for (let i = 0; i < goalsToAdd; i++) {
-        const { error: goalError } = await supabase
-          .from('goals')
-          .insert({
-            match_id: matchId,
-            player_id: selectedPlayer,
-            minute: 45 + i, // Default minute, can be made configurable
-            team_code: guestTeamCode && guestTeamCode.trim() !== '' ? guestTeamCode.trim() : null,
-            ...(matchDate ? { created_at: new Date(matchDate).toISOString() } : {})
-          });
-
-        if (goalError) {
-          console.error('Error adding goal:', goalError);
-          throw goalError;
-        }
+        const ok = await adminInsertGoal({ match_id: matchId as any, player_id: selectedPlayer });
+        if (!ok) throw new Error('Error adding goal');
       }
 
       // Update player's goals count in players table
-      const { data, error } = await supabase
-        .from('players')
-        .update({ goals: player.goals + goalsToAdd })
-        .eq('id', selectedPlayer)
-        .select();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Goals added successfully:', data);
+      const ok = await adminIncrementPlayerGoals(selectedPlayer, goalsToAdd);
+      if (!ok) throw new Error('Error updating player goals');
+      console.log('Goals added successfully');
 
       // Log the goal addition for monitoring
       await logGoalAddition(player.name, goalsToAdd, matchDate, matchType);
@@ -361,12 +300,7 @@ const AdminDashboard: React.FC = () => {
 
   const loadGameSettings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('game_settings')
-        .select('*');
-
-      if (error) throw error;
-
+      const data = await adminFetchGameSettings();
       const settings: any = {};
       data?.forEach(setting => {
         settings[setting.key] = setting.value;
@@ -387,12 +321,7 @@ const AdminDashboard: React.FC = () => {
 
   const loadFeedback = async () => {
     try {
-      const { data, error } = await supabase
-        .from('feedback')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await adminFetchFeedback();
       setFeedback(data || []);
     } catch (error) {
       console.error('Error loading feedback:', error);
@@ -402,30 +331,14 @@ const AdminDashboard: React.FC = () => {
   const loadUsers = async () => {
     try {
       // Haal alle gebruikers op met hun team en punten informatie
-      const { data: userTeams, error: userTeamsError } = await supabase
-        .from('user_teams')
-        .select(`
-          user_id,
-          bought_at,
-          sold_at,
-          players (
-            id,
-            name,
-            team,
-            goals,
-            price
-          )
-        `)
-        .is('sold_at', null);
-
-      if (userTeamsError) throw userTeamsError;
+      const userTeams = await fetchAllUserTeamsWithPlayers();
 
       // Groepeer per gebruiker en bereken statistieken
       const userStats = new Map();
       
       for (const userTeam of userTeams || []) {
         const userId = userTeam.user_id;
-        const player = userTeam.players as any;
+        const player = (userTeam as any).player as any;
         
         if (!userStats.has(userId)) {
           userStats.set(userId, {
@@ -448,11 +361,7 @@ const AdminDashboard: React.FC = () => {
       }
 
       // Haal gebruikersprofielen op
-      const { data: profiles, error: profilesError } = await supabase
-        .from('user_profiles')
-        .select('user_id, display_name');
-
-      if (profilesError) throw profilesError;
+      const profiles: any[] = [];
 
       // Haal echte gebruikersdata op uit auth.users (via Supabase admin API)
       // Voorlopig gebruiken we de user_id als email en een geschatte datum
@@ -494,30 +403,14 @@ const AdminDashboard: React.FC = () => {
   const viewUserTeam = async (userId: string) => {
     try {
       // Haal gedetailleerde team informatie op voor deze gebruiker
-      const { data: userTeams, error } = await supabase
-        .from('user_teams')
-        .select(`
-          bought_at,
-          players (
-            id,
-            name,
-            team,
-            position,
-            goals,
-            price
-          )
-        `)
-        .eq('user_id', userId)
-        .is('sold_at', null);
-
-      if (error) throw error;
+      const userTeams = await adminFetchUserTeamsWithPlayersByUser(userId);
 
       const user = users.find(u => u.id === userId);
       if (!user || !userTeams) return;
 
       // Bereken punten per speler
-      const teamDetails = await Promise.all(userTeams.map(async userTeam => {
-        const player = userTeam.players as any;
+      const teamDetails = await Promise.all(userTeams.map(async (userTeam: any) => {
+        const player = userTeam.player as any;
         const goalsForPlayer = player.goals || 0;
         const teamPoints = await getTeamPoints(player.team);
         const pointsForPlayer = goalsForPlayer * teamPoints;
@@ -566,22 +459,7 @@ const AdminDashboard: React.FC = () => {
   const recalculateUserPoints = async (userId: string) => {
     try {
       // Haal alle team data op voor deze gebruiker
-      const { data: userTeams, error } = await supabase
-        .from('user_teams')
-        .select(`
-          bought_at,
-          players (
-            id,
-            name,
-            team,
-            goals,
-            price
-          )
-        `)
-        .eq('user_id', userId)
-        .is('sold_at', null);
-
-      if (error) throw error;
+      const userTeams = await adminFetchUserTeamsWithPlayersByUser(userId);
 
       // Herbereken punten
       let totalPoints = 0;
@@ -589,7 +467,7 @@ const AdminDashboard: React.FC = () => {
       let teamCount = 0;
 
       for (const userTeam of userTeams || []) {
-        const player = userTeam.players as any;
+        const player = (userTeam as any).player as any;
         const goalsForPlayer = player.goals || 0;
         const teamPoints = await getTeamPoints(player.team);
         const pointsForPlayer = goalsForPlayer * teamPoints;
@@ -638,50 +516,21 @@ const AdminDashboard: React.FC = () => {
   };
 
   const updateUserProfile = async (userId: string, newName: string) => {
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: userId,
-          display_name: newName,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-
-      if (error) throw error;
-
-      // Update lokale state
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === userId 
-            ? { ...user, full_name: newName }
-            : user
-        )
-      );
-
-      alert(`Gebruiker ${newName} succesvol bijgewerkt!`);
-    } catch (error) {
-      console.error('Error updating user profile:', error);
-      alert('Fout bij bijwerken gebruiker!');
-    }
+    // Profiles not stored in DB anymore; update local state only
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.id === userId 
+          ? { ...user, full_name: newName }
+          : user
+      )
+    );
+    alert(`Gebruiker ${newName} lokaal bijgewerkt!`);
   };
 
   const removeUser = async (userId: string) => {
     try {
-      // Verwijder alle user_teams van deze gebruiker
-      const { error: teamsError } = await supabase
-        .from('user_teams')
-        .delete()
-        .eq('user_id', userId);
-
-      if (teamsError) throw teamsError;
-
-      // Verwijder user_profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .delete()
-        .eq('user_id', userId);
-
-      if (profileError) throw profileError;
+      const ok = await adminDeleteUserTeams(userId);
+      if (!ok) throw new Error('Kon user_teams niet verwijderen');
 
       // Update lokale state
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
@@ -697,18 +546,9 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Updating game setting:', { key, value });
       
-      // Use upsert so missing keys are created automatically
-      const { data, error } = await supabase
-        .from('game_settings')
-        .upsert({ key, value }, { onConflict: 'key' })
-        .select();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Game setting updated successfully:', data);
+      const ok = await adminUpsertGameSetting(key, value);
+      if (!ok) throw new Error('Instelling upsert mislukt');
+      console.log('Game setting updated successfully');
 
       await loadGameSettings();
       alert('Instelling succesvol bijgewerkt!');
@@ -722,17 +562,9 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Updating boolean game setting:', { key, value });
       
-      const { data, error } = await supabase
-        .from('game_settings')
-        .upsert({ key, value: value.toString() }, { onConflict: 'key' })
-        .select();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Boolean game setting updated successfully:', data);
+      const ok = await adminUpsertGameSetting(key, value.toString());
+      if (!ok) throw new Error('Instelling upsert mislukt');
+      console.log('Boolean game setting updated successfully');
 
       await loadGameSettings();
       alert('Instelling succesvol bijgewerkt!');

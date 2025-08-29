@@ -1,20 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useSupabase } from '../contexts/SupabaseContext'
+import { fetchPlayers as dbFetchPlayers, type PlayerUI } from '../lib/db'
 import { Users, Euro, Plus, Minus } from 'lucide-react'
 
-interface Player {
-  id: string
-  name: string
-  position: string
-  team_name: string
-  team_level: number
-  points_multiplier: number
-  price: number
-  goals_scored: number
-}
+interface Player extends PlayerUI {}
 
 export default function Players() {
-  const { supabase } = useSupabase()
   const [players, setPlayers] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -24,13 +14,8 @@ export default function Players() {
 
   const fetchPlayers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('players')
-        .select('*')
-        .order('name')
-
-      if (error) throw error
-      setPlayers(data || [])
+      const data = await dbFetchPlayers()
+      setPlayers(data)
     } catch (error) {
       console.error('Error fetching players:', error)
     } finally {

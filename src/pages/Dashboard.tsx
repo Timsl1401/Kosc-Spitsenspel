@@ -1,7 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Player, UserTeam, Goal, getTeamPoints, isTransferAllowed } from '../lib/supabase';
+import { getTeamPoints, isTransferAllowed } from '../lib/supabase';
+import { 
+  fetchPlayersSorted,
+  fetchUserTeamActive,
+  fetchUserTeamAll,
+  fetchSettingValue,
+  countUserBuysAfter,
+  fetchGoalsForPlayerBetweenCount,
+  buyUserTeam,
+  sellUserTeam,
+  fetchAllUserTeamsWithPlayers,
+} from '../lib/db';
 import { Users, Trophy, Euro, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
+
+// Local minimal types aligned to the new dumb DB
+type Player = {
+  id: string;
+  name: string;
+  team: string;
+  position: string;
+  price: number;
+  goals: number;
+};
+
+type UserTeam = {
+  id: string;
+  user_id: string;
+  player_id: string;
+  bought_at: string;
+  sold_at: string | null;
+};
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -78,64 +107,21 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const loadUserProfile = async () => {
-    if (!user?.id) return;
-    
-    try {
-      // Haal bestaand profiel op
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('display_name')
-        .eq('user_id', user.id)
-        .single();
-      
-      let userName = '';
-      
-      // Bepaal de naam uit metadata
-      if (user?.user_metadata?.full_name) {
-        userName = user.user_metadata.full_name;
-      } else if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
-        userName = `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
-      } else if (user?.user_metadata?.first_name) {
-        userName = user.user_metadata.first_name;
-      } else {
-        userName = user?.email?.split('@')[0] || '';
-      }
-      
-      // Als er geen profiel is of de naam is anders, maak/update het profiel
-      if (!profile || profile.display_name !== userName) {
-        const { error: upsertError } = await supabase
-          .from('user_profiles')
-          .upsert({
-            user_id: user.id,
-            display_name: userName,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' });
-        
-        if (upsertError) {
-          console.error('Error updating user profile:', upsertError);
-        }
-      }
-      
-
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-    }
-  };
+  // Profiles are not managed in DB; keep auth metadata in memory only
+  const loadUserProfile = async () => {};
 
   const loadTopScorers = async () => {
     try {
       const topScorersData = availablePlayers
-        .filter(player => player.goals > 0)
-        .sort((a, b) => b.goals - a.goals)
+        .filter((player) => (player.goals || 0) > 0)
+        .sort((a, b) => (b.goals || 0) - (a.goals || 0))
         .slice(0, 10)
         .map(player => ({
           player_id: player.id,
           name: player.name,
           team: player.team,
           position: player.position,
-          goals: player.goals
+          goals: player.goals || 0,
         }));
       
       setTopScorers(topScorersData);
@@ -146,29 +132,17 @@ const Dashboard: React.FC = () => {
   };
 
   const loadTransferDeadline = async () => {
-    const { data: deadlineData } = await supabase
-      .from('game_settings')
-      .select('value')
-      .eq('key', 'start_deadline')
-      .single();
-    
-    if (deadlineData) {
-      setTransferDeadline(deadlineData.value);
-      const deadlineDate = new Date(deadlineData.value);
+    const value = await fetchSettingValue('start_deadline');
+    if (value) {
+      setTransferDeadline(value);
+      const deadlineDate = new Date(value);
       const currentDate = new Date();
       const isDeadlinePassed = currentDate > deadlineDate;
       setIsDeadlinePassed(isDeadlinePassed);
       
       // Als de deadline is geweest, bereken hoeveel transfers er nog over zijn
       if (isDeadlinePassed) {
-        // Tel hoeveel spelers er gekocht zijn na de deadline
-        const { data: postDeadlinePlayers } = await supabase
-          .from('user_teams')
-          .select('bought_at')
-          .eq('user_id', user?.id)
-          .gte('bought_at', deadlineData.value);
-        
-        const postDeadlineCount = postDeadlinePlayers?.length || 0;
+        const postDeadlineCount = user?.id ? await countUserBuysAfter(user.id, value) : 0;
         setTransfersAfterDeadline(Math.max(0, 3 - postDeadlineCount));
       }
     }
@@ -192,10 +166,11 @@ const Dashboard: React.FC = () => {
     availablePlayers.forEach(player => {
       const isOwned = userTeam.find(ut => ut.player_id === player.id && !ut.sold_at);
       if (!isOwned) {
-        if (!playersByTeam[player.team]) {
-          playersByTeam[player.team] = [];
+        const teamName = player.team || '';
+        if (!playersByTeam[teamName]) {
+          playersByTeam[teamName] = [];
         }
-        playersByTeam[player.team].push(player);
+        playersByTeam[teamName].push(player);
       }
     });
 
@@ -203,7 +178,7 @@ const Dashboard: React.FC = () => {
   };
 
   const getTeamNames = () => {
-    const teams = new Set(availablePlayers.map(p => p.team));
+    const teams = new Set(availablePlayers.map(p => p.team || ''));
     const teamArray = Array.from(teams);
     
     // Groepeer teams per speeldag
@@ -226,26 +201,7 @@ const Dashboard: React.FC = () => {
     try {
       console.log('Laden ranglijst...');
       
-      // Haal alle gebruikers op met hun teams en gebruikersgegevens (inclusief verkochte spelers)
-      const { data: userTeamsData, error: userTeamsError } = await supabase
-        .from('user_teams')
-        .select(`
-          user_id,
-          bought_at,
-          sold_at,
-          players (
-            id,
-            name,
-            team,
-            goals,
-            price
-          )
-        `);
-
-      if (userTeamsError) {
-        console.error('Database error bij laden ranglijst:', userTeamsError);
-        throw userTeamsError;
-      }
+      const userTeamsData = await fetchAllUserTeamsWithPlayers();
 
       console.log('User teams data:', userTeamsData);
 
@@ -256,25 +212,14 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      // Haal alle unieke gebruikers op om hun profielen te krijgen
-      const uniqueUserIds = [...new Set(userTeamsData.map(ut => ut.user_id))];
-      const { data: userProfiles, error: profilesError } = await supabase
-        .from('user_profiles')
-        .select('user_id, display_name')
-        .in('user_id', uniqueUserIds);
-
-      if (profilesError) {
-        console.log('Kon geen gebruikersprofielen ophalen:', profilesError);
-      }
-
-      console.log('User profiles:', userProfiles);
+      // Profielen overslaan; gebruik placeholder/metadata
+      const userProfiles: any[] = [];
 
       // Groepeer per gebruiker en bereken punten
       const userPoints: { [key: string]: { points: number; teamValue: number; email: string; firstName: string } } = {};
       
       for (const userTeam of userTeamsData) {
-        if (userTeam.players) {
-          const player = userTeam.players as any;
+        const player = userTeam.player as any;
           const userId = userTeam.user_id as string;
           
           if (!userPoints[userId]) {
@@ -282,22 +227,15 @@ const Dashboard: React.FC = () => {
           }
           
           // Bereken punten op basis van individuele goals tussen koop en verkoop
-          let q = supabase
-            .from('goals')
-            .select('*')
-            .eq('player_id', player.id)
-            .gte('created_at', userTeam.bought_at);
-          if (userTeam.sold_at) q = q.lt('created_at', userTeam.sold_at);
-          const { data: goalsInWindow } = await q;
-          const goals = goalsInWindow || [];
-          for (const g of goals as any[]) {
-            const teamName = g.team_code && g.team_code.trim() !== '' ? g.team_code : player.team;
+          const count = await fetchGoalsForPlayerBetweenCount(player.id, userTeam.bought_at, userTeam.sold_at || undefined);
+          for (let i = 0; i < count; i++) {
+            const teamName = player.team;
             userPoints[userId].points += getTeamPointsSync(teamName);
           }
           
           // Voeg team waarde toe
           userPoints[userId].teamValue += player.price;
-        }
+        
       }
 
       console.log('User points berekend:', userPoints);
@@ -306,7 +244,7 @@ const Dashboard: React.FC = () => {
       Object.keys(userPoints).forEach(userId => {
         if (userPoints[userId]) {
           // Zoek eerst naar een profiel naam
-          const userProfile = userProfiles?.find(p => p.user_id === userId);
+          const userProfile = userProfiles?.find((p: any) => p.user_id === userId);
           
           if (userProfile && userProfile.display_name) {
             // Gebruik de naam uit het profiel
@@ -387,32 +325,16 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       
       // Laad het actieve team (niet verkocht)
-      const { data: teamData, error: teamError } = await supabase
-        .from('user_teams')
-        .select('*')
-        .eq('user_id', user?.id)
-        .is('sold_at', null);
-
-      if (teamError) throw teamError;
-      setUserTeam(teamData || []);
+      const teamData = user?.id ? await fetchUserTeamActive(user.id) : [];
+      setUserTeam(teamData as unknown as UserTeam[]);
 
       // Laad alle team items (inclusief verkochte) voor puntenberekening
-      const { data: teamDataAll, error: teamAllError } = await supabase
-        .from('user_teams')
-        .select('*')
-        .eq('user_id', user?.id);
-      if (teamAllError) throw teamAllError;
-      setUserTeamAll(teamDataAll || []);
+      const teamDataAll = user?.id ? await fetchUserTeamAll(user.id) : [];
+      setUserTeamAll(teamDataAll as unknown as UserTeam[]);
 
       // Load available players
-      const { data: playersData, error: playersError } = await supabase
-        .from('players')
-        .select('*')
-        .order('team', { ascending: true })
-        .order('name', { ascending: true });
-
-      if (playersError) throw playersError;
-      setAvailablePlayers(playersData || []);
+      const playersData = await fetchPlayersSorted();
+      setAvailablePlayers(playersData as unknown as Player[]);
 
       // Calculate budget and team value
       const currentTeamValue = teamData?.reduce((sum, item) => {
@@ -429,27 +351,13 @@ const Dashboard: React.FC = () => {
         const player = playersData?.find(p => p.id === item.player_id);
         if (!player || !item.bought_at) continue;
 
-        // Haal goals op binnen het bezit-venster
-        let query = supabase
-          .from('goals')
-          .select('*')
-          .eq('player_id', player.id)
-          .gte('created_at', item.bought_at);
-        if (item.sold_at) {
-          query = query.lt('created_at', item.sold_at);
-        }
-        const { data: goalsInWindow, error: goalsErr } = await query.order('created_at', { ascending: true });
-        if (goalsErr) {
-          console.error('Error fetching goals in window:', goalsErr);
-          continue;
-        }
-        const goals: Goal[] = goalsInWindow || [];
-        if (!goals.length) continue;
+        const count = await fetchGoalsForPlayerBetweenCount(player.id, item.bought_at, item.sold_at || undefined);
+        if (!count) continue;
 
         const perTeam: Record<string, { goals: number; points: number }> = {};
         let playerPoints = 0;
-        for (const g of goals) {
-          const effectiveTeam = (g as any).team_code && (g as any).team_code.trim() !== '' ? (g as any).team_code as string : player.team;
+        for (let i = 0; i < count; i++) {
+          const effectiveTeam = player.team;
           const pts = getTeamPointsSync(effectiveTeam);
           playerPoints += pts;
           if (!perTeam[effectiveTeam]) perTeam[effectiveTeam] = { goals: 0, points: 0 };
@@ -457,7 +365,7 @@ const Dashboard: React.FC = () => {
           perTeam[effectiveTeam].points += pts;
         }
         if (playerPoints > 0) {
-          breakdown[item.id] = { totalPoints: playerPoints, totalGoals: goals.length, perTeam };
+          breakdown[item.id] = { totalPoints: playerPoints, totalGoals: count, perTeam };
           aggregatePoints += playerPoints;
         }
       }
@@ -508,23 +416,10 @@ const Dashboard: React.FC = () => {
 
     try {
       console.log('Inserting player into user_teams...');
-      const { data, error } = await supabase
-        .from('user_teams')
-        .insert({
-          user_id: user.id,
-          player_id: player.id,
-          bought_at: new Date().toISOString(),
-          bought_price: player.price,
-          points_earned: 0
-        })
-        .select();
+      const ok = await buyUserTeam(user.id, player.id, player.price);
+      if (!ok) throw new Error('Insert failed');
 
-      if (error) {
-        console.error('Supabase fout:', error);
-        throw error;
-      }
-
-      console.log('Player bought successfully:', data);
+      console.log('Player bought successfully');
 
       // Update transfers after deadline if applicable
       if (isDeadlinePassed) {
@@ -571,12 +466,8 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('user_teams')
-        .update({ sold_at: new Date().toISOString() })
-        .eq('id', userTeamItem.id);
-
-      if (error) throw error;
+      const ok = await sellUserTeam(userTeamItem.id);
+      if (!ok) throw new Error('Update failed');
 
       // Show success notification immediately
       showNotification('success', `${player.name} is succesvol verkocht!`);
@@ -800,7 +691,7 @@ const Dashboard: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {userTeam.map((item) => {
-                const player = availablePlayers.find(p => p.id === item.player_id);
+                const player = availablePlayers.find((p) => p.id === item.player_id);
                 if (!player) return null;
 
                 return (
@@ -1130,7 +1021,7 @@ const Dashboard: React.FC = () => {
                             {isExpanded && (
                               <div className="bg-white border-t border-gray-200">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                                  {playersInTeam.map((player) => (
+                                  {playersInTeam.map((player: Player) => (
                                     <div key={player.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                       <div className="flex justify-between items-start mb-2">
                                         <div>
@@ -1224,7 +1115,7 @@ const Dashboard: React.FC = () => {
                             {isExpanded && (
                               <div className="bg-white border-t border-gray-200">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                                  {playersInTeam.map((player) => (
+                                  {playersInTeam.map((player: Player) => (
                                     <div key={player.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                       <div className="flex justify-between items-start mb-2">
                                         <div>
@@ -1319,7 +1210,7 @@ const Dashboard: React.FC = () => {
                             {isExpanded && (
                               <div className="bg-white border-t border-gray-200">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                                  {playersInTeam.map((player) => (
+                                  {playersInTeam.map((player: Player) => (
                                     <div key={player.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                       <div className="flex justify-between items-start mb-2">
                                         <div>
