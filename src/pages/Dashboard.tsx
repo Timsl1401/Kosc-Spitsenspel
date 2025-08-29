@@ -86,10 +86,10 @@ const Dashboard: React.FC = () => {
           pointsData[team] = points;
         } catch (error) {
           console.error(`Error loading points for team ${team}:`, error);
-          // Fallback naar hardcoded waarden
-          pointsData[team] = team === 'KOSC 1' ? 3.0 :
-                           team === 'KOSC 2' ? 2.5 :
-                           team === 'KOSC 3' ? 2.0 : 1.0;
+          // Veilige fallback (1 punt tenzij KOSC 1 of 2)
+          if (team.includes('KOSC 1')) pointsData[team] = 3.0;
+          else if (team.includes('KOSC 2')) pointsData[team] = 2.0;
+          else pointsData[team] = 1.0;
         }
       }
 
