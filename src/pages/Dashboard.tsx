@@ -293,15 +293,14 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      // checkFirstTimeUser() is uitgeschakeld om problemen te voorkomen
-      loadUserData();
-      loadTransferDeadline();
-      loadLeaderboard();
-      loadTransferStatus();
-      loadUserProfile();
-      loadTopScorers();
-    }
+    // Laad basisdata direct bij mount en telkens wanneer de user verandert.
+    // De loaders zelf houden rekening met ontbrekende user en laden dan alleen publieke data.
+    loadUserData();
+    loadTransferDeadline();
+    loadLeaderboard();
+    loadTransferStatus();
+    loadUserProfile();
+    loadTopScorers();
   }, [user]);
 
   // Laad team points wanneer availablePlayers verandert
