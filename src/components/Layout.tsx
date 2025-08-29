@@ -20,7 +20,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
                      {/* Hoofdheader met logo, feedback en uitlog */}
-               <div className="kosc-header" style={{ backgroundImage: "url('/kosc-field.svg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+               <div className="kosc-header" style={{ backgroundImage: "url('/FotoKosc%20Zwart%20Wit.jpg'), url('/kosc-field.svg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                  <div className="container mx-auto px-4 py-4">
                    <div className="grid grid-cols-3 items-center">
                      {/* Feedback link links */}
