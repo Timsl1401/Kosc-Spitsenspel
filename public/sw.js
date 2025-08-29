@@ -53,8 +53,6 @@ self.addEventListener('fetch', (event) => {
 
   // Skip caching for API calls and dynamic content
   if (event.request.url.includes('/api/') || 
-      event.request.url.includes('supabase.co') ||
-      event.request.url.includes('supabase.com') ||
       event.request.url.includes('vite') ||
       event.request.url.includes('@vite')) {
     return;
