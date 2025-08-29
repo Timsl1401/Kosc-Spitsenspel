@@ -209,7 +209,7 @@ export async function sellUserTeam(userTeamId: string): Promise<boolean> {
   return true
 }
 
-export async function fetchAllUserTeamsWithPlayers(): Promise<Array<{ user_id: string; bought_at: string; sold_at: string | null; player: { id: string; team: string; price: number } }>> {
+export async function fetchAllUserTeamsWithPlayers(): Promise<Array<{ user_id: string; bought_at: string; sold_at: string | null; player: { id: string; team: string; price: number }; user?: { display_name: string; email: string } }>> {
   const { data, error } = await db
     .from('user_teams')
     .select(`
@@ -220,6 +220,10 @@ export async function fetchAllUserTeamsWithPlayers(): Promise<Array<{ user_id: s
         id,
         team,
         price
+      ),
+      users (
+        display_name,
+        email
       )
     `)
 
@@ -233,6 +237,7 @@ export async function fetchAllUserTeamsWithPlayers(): Promise<Array<{ user_id: s
     bought_at: row.bought_at,
     sold_at: row.sold_at,
     player: row.players,
+    user: row.users,
   }))
 }
 

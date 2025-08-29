@@ -214,18 +214,18 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      // Profielen overslaan; gebruik placeholder/metadata
-      const userProfiles: any[] = [];
+      // Profielen niet gebruikt
 
       // Groepeer per gebruiker en bereken punten
-      const userPoints: { [key: string]: { points: number; teamValue: number; email: string; firstName: string } } = {};
+      const userPoints: { [key: string]: { points: number; teamValue: number; label: string } } = {};
       
       for (const userTeam of userTeamsData) {
         const player = userTeam.player as any;
           const userId = userTeam.user_id as string;
           
           if (!userPoints[userId]) {
-            userPoints[userId] = { points: 0, teamValue: 0, email: '', firstName: '' };
+            const label = (userTeam as any).user?.display_name || (userTeam as any).user?.email?.split('@')[0] || `Speler ${userId.slice(0,6)}`;
+            userPoints[userId] = { points: 0, teamValue: 0, label };
           }
           
           // Bereken punten op basis van individuele goals tussen koop en verkoop
@@ -235,40 +235,14 @@ const Dashboard: React.FC = () => {
             userPoints[userId].points += getTeamPointsSync(teamName);
           }
           
-          // Voeg team waarde toe
+          // Voeg team waarde toe (maximaal 15 spelers, d.w.z. nooit > €100M bij start)
           userPoints[userId].teamValue += player.price;
         
       }
 
       console.log('User points berekend:', userPoints);
 
-      // Probeer gebruikersnamen op te halen uit profielen en huidige gebruiker
-      Object.keys(userPoints).forEach(userId => {
-        if (userPoints[userId]) {
-          // Zoek eerst naar een profiel naam
-          const userProfile = userProfiles?.find((p: any) => p.user_id === userId);
-          
-          if (userProfile && userProfile.display_name) {
-            // Gebruik de naam uit het profiel
-            userPoints[userId].firstName = userProfile.display_name;
-          } else if (userId === user?.id) {
-            // Als dit de huidige gebruiker is, gebruik dan hun metadata
-            if (user?.user_metadata?.full_name) {
-              userPoints[userId].firstName = user.user_metadata.full_name;
-            } else if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
-              userPoints[userId].firstName = `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
-            } else if (user?.user_metadata?.first_name) {
-              userPoints[userId].firstName = user.user_metadata.first_name;
-            } else {
-              userPoints[userId].firstName = user?.email?.split('@')[0] || `Speler ${userId.slice(0, 6)}`;
-            }
-          } else {
-            // Voor andere gebruikers zonder profiel, gebruik een korte ID
-            const shortId = userId.slice(0, 6);
-            userPoints[userId].firstName = `Speler ${shortId}`;
-          }
-        }
-      });
+      // Labels zijn al bepaald bij initialisatie
 
       // Converteer naar array en sorteer op punten
       const leaderboardArray = Object.entries(userPoints)
@@ -276,7 +250,7 @@ const Dashboard: React.FC = () => {
           user_id: userId,
           total_points: data.points,
           team_value: data.teamValue,
-          user_email: data.firstName || data.email || `Speler ${userId.slice(0, 6)}`,
+          user_email: data.label,
           rank: 0
         }))
         .sort((a, b) => b.total_points - a.total_points)
