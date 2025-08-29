@@ -225,7 +225,8 @@ const Dashboard: React.FC = () => {
           const userId = userTeam.user_id as string;
           
           if (!userPoints[userId]) {
-            const label = (userTeam as any).user?.display_name || (userTeam as any).user?.email || `Speler ${userId.slice(0,6)}`;
+            const rawDisplay = (userTeam as any).user?.display_name as string | undefined;
+            const label = rawDisplay && rawDisplay.trim() !== '' ? rawDisplay.trim() : `Speler ${userId.slice(0,6)}`;
             userPoints[userId] = { points: 0, teamValue: 0, label };
           }
           
@@ -245,15 +246,25 @@ const Dashboard: React.FC = () => {
 
       console.log('User points berekend:', userPoints);
 
-      // Labels verrijken vanuit users tabel (zekerheid als join niets gaf)
+      // Labels verrijken uitsluitend als huidige labels op e-mails lijken (PII)
       const ids = Object.keys(userPoints)
       if (ids.length > 0) {
-        const rows = await fetchUsersByIds(ids)
-        const map: Record<string, string> = {}
-        rows.forEach(r => { map[r.id] = (r.display_name && r.display_name.trim()) ? r.display_name : (r.email || `Speler ${r.id.slice(0,6)}`) })
-        Object.entries(userPoints).forEach(([uid, data]) => {
-          if (map[uid]) data.label = map[uid]
-        })
+        const currentLabels = Object.values(userPoints).map(v => v.label)
+        const anyEmailLike = currentLabels.some(l => typeof l === 'string' && l.includes('@'))
+        if (anyEmailLike) {
+          const rows = await fetchUsersByIds(ids)
+          const displayNameMap: Record<string, string> = {}
+          rows.forEach(r => {
+            const dn = (r.display_name ?? '').trim()
+            if (dn) displayNameMap[r.id] = dn
+          })
+          Object.entries(userPoints).forEach(([uid, data]) => {
+            const newLabel = displayNameMap[uid]
+            if (newLabel && typeof data.label === 'string' && data.label.includes('@')) {
+              data.label = newLabel
+            }
+          })
+        }
       }
 
       // Converteer naar array en sorteer op punten

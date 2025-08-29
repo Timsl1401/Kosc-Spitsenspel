@@ -74,10 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin
     const { data, error } = await db.auth.signUp({
       email,
       password,
-      options: { data: { first_name: firstName, last_name: lastName } },
+      options: {
+        data: { first_name: firstName, last_name: lastName },
+        emailRedirectTo: `${siteUrl}/auth/callback`,
+      },
     })
     if (error) return { success: false, message: error.message }
     if (data.user) return { success: true, message: 'Account aangemaakt. Check je e‑mail om te bevestigen.' }

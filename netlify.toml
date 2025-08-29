@@ -6,6 +6,7 @@
   NODE_VERSION = "18.19.0"
   NPM_FLAGS = "--legacy-peer-deps"
   NPM_CONFIG_PRODUCTION = "false"
+  VITE_SITE_URL = "https://koscspitsenspel.nl"
   VITE_SUPABASE_URL = "https://psxcsrcdmjbdgqycgczp.supabase.co"
   VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzeGNzcmNkbWpiZGdxeWNnY3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NTk1NDUsImV4cCI6MjA3MjAzNTU0NX0.gu934IUDjhDXMy9BWOpUN7HIFjBqSDJWrec-KfdOIts"
 
