@@ -13,6 +13,7 @@ import {
   sellUserTeam,
   fetchAllUserTeamsWithPlayers,
   ensureUserExists,
+  fetchUsersByIds,
 } from '../lib/db';
 import { Users, Trophy, Euro, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
 
@@ -244,7 +245,16 @@ const Dashboard: React.FC = () => {
 
       console.log('User points berekend:', userPoints);
 
-      // Labels zijn al bepaald bij initialisatie
+      // Labels verrijken vanuit users tabel (zekerheid als join niets gaf)
+      const ids = Object.keys(userPoints)
+      if (ids.length > 0) {
+        const rows = await fetchUsersByIds(ids)
+        const map: Record<string, string> = {}
+        rows.forEach(r => { map[r.id] = (r.display_name && r.display_name.trim()) ? r.display_name : (r.email || `Speler ${r.id.slice(0,6)}`) })
+        Object.entries(userPoints).forEach(([uid, data]) => {
+          if (map[uid]) data.label = map[uid]
+        })
+      }
 
       // Converteer naar array en sorteer op punten
       const leaderboardArray = Object.entries(userPoints)

@@ -241,6 +241,19 @@ export async function fetchAllUserTeamsWithPlayers(): Promise<Array<{ user_id: s
   }))
 }
 
+export async function fetchUsersByIds(userIds: string[]): Promise<Array<{ id: string; display_name: string | null; email: string }>> {
+  if (!userIds.length) return []
+  const { data, error } = await db
+    .from('users')
+    .select('id, display_name, email')
+    .in('id', userIds)
+  if (error) {
+    console.error('fetchUsersByIds error:', error)
+    return []
+  }
+  return (data || []) as Array<{ id: string; display_name: string | null; email: string }>
+}
+
 // Admin-specific helpers
 export async function adminFetchPlayers(): Promise<PlayerDB[]> {
   const { data, error } = await db
