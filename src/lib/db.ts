@@ -147,6 +147,7 @@ export async function fetchGoalsForPlayerBetweenCount(playerId: string, fromIso:
 }
 
 export async function buyUserTeam(userId: string, playerId: string, price: number): Promise<boolean> {
+  void price;
   const { error } = await db
     .from('user_teams')
     .insert({

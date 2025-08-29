@@ -37,7 +37,7 @@ export default function Rankings() {
         agg.team_value += player.price || 0
         // goals_count is not available here per player; keep 0 for now
       }
-      const list: Ranking[] = Array.from(userAgg.entries()).map(([user_id, agg], idx) => ({
+      const list: Ranking[] = Array.from(userAgg.entries()).map(([user_id, agg]) => ({
         id: user_id,
         user_id,
         period: selectedPeriod,
