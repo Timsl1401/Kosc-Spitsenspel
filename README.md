@@ -39,7 +39,7 @@ src/
 │   ├── AdminContext.tsx # Admin rechten
 │   └── SupabaseContext.tsx # Database verbinding
 ├── lib/                # Utilities
-│   └── supabase.ts     # Supabase configuratie
+│   └── db.ts           # Minimal DB client (no RPC/triggers)
 └── App.tsx             # Hoofdcomponent met routing
 ```
 
@@ -54,7 +54,7 @@ De database gebruikt Supabase met deze hoofdtabellen:
 
 ## Essentiële bestanden
 
-- `supabase-game-schema.sql` - Database structuur
+- `SQL/backup_schema.sql` - Minimal database structuur
 - `fix-admin-permissions.sql` - Admin rechten
 - `src/App.tsx` - Routing en app structuur
 - `src/components/Layout.tsx` - Hoofdlayout
@@ -81,8 +81,8 @@ npm run build
 Maak een `.env` bestand aan in de root van het project met de volgende variabelen:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url_here
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
 
 Je kunt deze waarden vinden in je Supabase project dashboard onder Settings > API.
@@ -90,7 +90,7 @@ Je kunt deze waarden vinden in je Supabase project dashboard onder Settings > AP
 ### Database setup
 
 1. Maak een Supabase project
-2. Voer `supabase-game-schema.sql` uit
+2. Voer `SQL/backup_schema.sql` uit
 3. Voer `fix-admin-permissions.sql` uit
 4. Stel environment variables in (zie hierboven)
 
