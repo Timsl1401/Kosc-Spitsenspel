@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { db } from '../lib/db'
+import { db, ensureUserExists } from '../lib/db'
 
 type User = { id: string; email?: string | null; user_metadata?: Record<string, any>; email_confirmed_at?: string | null }
 type Session = any
@@ -25,18 +25,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    db.auth.getSession().then(({ data, error }) => {
+    db.auth.getSession().then(async ({ data, error }) => {
       if (error) console.error('getSession error:', error)
       setSession(data?.session ?? null)
       setUser((data?.session?.user as any) ?? null)
       setIsEmailConfirmed(!!(data?.session?.user as any)?.email_confirmed_at)
+      // Ensure user row exists with a readable display name
+      const u: any = data?.session?.user
+      if (u?.id) {
+        const dn = u.user_metadata?.full_name ||
+                   (u.user_metadata?.first_name && u.user_metadata?.last_name
+                    ? `${u.user_metadata.first_name} ${u.user_metadata.last_name}`
+                    : (u.user_metadata?.first_name || null)) ||
+                   (u.email ? u.email.split('@')[0] : null)
+        await ensureUserExists(u.id, u.email || null, dn)
+      }
       setLoading(false)
     })
 
-    const { data: subscription } = db.auth.onAuthStateChange((_event, s) => {
+    const { data: subscription } = db.auth.onAuthStateChange(async (_event, s) => {
       setSession(s)
       setUser((s?.user as any) ?? null)
       setIsEmailConfirmed(!!(s?.user as any)?.email_confirmed_at)
+      const u: any = s?.user
+      if (u?.id) {
+        const dn = u.user_metadata?.full_name ||
+                   (u.user_metadata?.first_name && u.user_metadata?.last_name
+                    ? `${u.user_metadata.first_name} ${u.user_metadata.last_name}`
+                    : (u.user_metadata?.first_name || null)) ||
+                   (u.email ? u.email.split('@')[0] : null)
+        await ensureUserExists(u.id, u.email || null, dn)
+      }
       setLoading(false)
     })
 
