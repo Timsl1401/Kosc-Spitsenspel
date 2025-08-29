@@ -39,7 +39,7 @@ const Dashboard: React.FC = () => {
   const [userTeamAll, setUserTeamAll] = useState<UserTeam[]>([]);
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  const [budget, setBudget] = useState(10000000);
+  const [budget, setBudget] = useState(100000000);
   const [totalPoints, setTotalPoints] = useState(0);
   const [pointsBreakdown, setPointsBreakdown] = useState<Record<string, { totalPoints: number; totalGoals: number; perTeam: Record<string, { goals: number; points: number }> }>>({});
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
@@ -343,7 +343,7 @@ const Dashboard: React.FC = () => {
         return sum + (player?.price || 0);
       }, 0) || 0;
 
-      setBudget(10000000 - currentTeamValue);
+      setBudget(100000000 - currentTeamValue);
 
       // Bereken punten op basis van individuele goals tussen koop en verkoop
       const breakdown: Record<string, { totalPoints: number; totalGoals: number; perTeam: Record<string, { goals: number; points: number }> }> = {};
@@ -1324,7 +1324,7 @@ const Dashboard: React.FC = () => {
             <h3 className="font-semibold text-gray-800 mb-3">Transferregels</h3>
             <ul className="space-y-2 text-sm text-gray-700">
               <li>• Maximaal 15 spelers in je team</li>
-              <li>• Budget: €10.000.000</li>
+              <li>• Budget: €100.000.000</li>
               <li>• Maximaal 3 transfers na start</li>
               <li>• Geen transfers in het weekend</li>
             </ul>
