@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kosc-spitsenspel-v5';
+const CACHE_NAME = 'kosc-spitsenspel-v6';
 const NAVIGATION_FALLBACK_URL = '/index.html';
 const urlsToCache = [
   '/',
