@@ -7,8 +7,7 @@ import {
   adminUpdatePlayer,
   adminDeletePlayer,
   adminCreateMatch,
-  adminInsertGoal,
-  adminIncrementPlayerGoals,
+  adminInsertGoalWithTeam,
   adminFetchGameSettings,
   adminUpsertGameSetting,
   adminFetchFeedback,
@@ -265,13 +264,15 @@ const AdminDashboard: React.FC = () => {
 
       // Add goals to the goals table
       for (let i = 0; i < goalsToAdd; i++) {
-        const ok = await adminInsertGoal({ match_id: matchId as any, player_id: selectedPlayer });
+        const ok = await adminInsertGoalWithTeam({
+          match_id: matchId as any,
+          player_id: selectedPlayer,
+          team_code: guestTeamCode || player.team,
+          created_at: matchDate || new Date().toISOString()
+        });
         if (!ok) throw new Error('Error adding goal');
       }
 
-      // Update player's goals count in players table
-      const ok = await adminIncrementPlayerGoals(selectedPlayer, goalsToAdd);
-      if (!ok) throw new Error('Error updating player goals');
       console.log('Goals added successfully');
 
       // Log the goal addition for monitoring

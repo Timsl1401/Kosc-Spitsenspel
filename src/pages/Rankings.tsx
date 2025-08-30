@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { fetchAllUserTeamsWithPlayers } from '../lib/db'
+import { fetchAllUserTeamsWithPlayers, fetchGoalsForPlayerBetween } from '../lib/db'
+import { getTeamPoints } from '../lib/gameLogic'
 import { Trophy, Medal, TrendingUp } from 'lucide-react'
 
 interface Ranking {
@@ -27,7 +28,7 @@ export default function Rankings() {
   const fetchRankings = async () => {
     try {
       const data = await fetchAllUserTeamsWithPlayers()
-      // Compute simple ranking: points = goals * teamPoints (approx) and aggregate by user
+      // Compute real ranking: sum over goals within buy/sell window using getTeamPoints
       const userAgg = new Map<string, { total_points: number; team_value: number; goals_count: number }>()
       for (const row of data) {
         const player = (row as any).player
@@ -35,7 +36,13 @@ export default function Rankings() {
         if (!userAgg.has(userId)) userAgg.set(userId, { total_points: 0, team_value: 0, goals_count: 0 })
         const agg = userAgg.get(userId)!
         agg.team_value += player.price || 0
-        // goals_count is not available here per player; keep 0 for now
+
+        const goals = await fetchGoalsForPlayerBetween(player.id, (row as any).bought_at, (row as any).sold_at || undefined)
+        for (const g of goals as Array<{ team_code: string | null }>) {
+          const effectiveTeam = (g as any).team_code && (g as any).team_code.trim() !== '' ? (g as any).team_code : player.team
+          agg.total_points += getTeamPoints(effectiveTeam)
+          agg.goals_count += 1
+        }
       }
       const list: Ranking[] = Array.from(userAgg.entries()).map(([user_id, agg]) => ({
         id: user_id,

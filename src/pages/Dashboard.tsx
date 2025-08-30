@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(100000000);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [pointsBreakdown, setPointsBreakdown] = useState<Record<string, { totalPoints: number; totalGoals: number; perTeam: Record<string, { goals: number; points: number }> }>>({});
+  const [pointsBreakdown, setPointsBreakdown] = useState<Record<string, { totalPoints: number; totalGoals: number; perTeam: Record<string, { goals: number; points: number }>; isSold: boolean }>>({});
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
   const [transferDeadline, setTransferDeadline] = useState<string>('');
   const [transfersAfterDeadline, setTransfersAfterDeadline] = useState(3);
@@ -342,14 +342,17 @@ const Dashboard: React.FC = () => {
       setBudget(100000000 - currentTeamValue);
 
       // Bereken punten op basis van individuele goals tussen koop en verkoop
-      const breakdown: Record<string, { totalPoints: number; totalGoals: number; perTeam: Record<string, { goals: number; points: number }> }> = {};
+      const breakdown: Record<string, { totalPoints: number; totalGoals: number; perTeam: Record<string, { goals: number; points: number }>; isSold: boolean }> = {};
       let aggregatePoints = 0;
       for (const item of teamDataAll || []) {
         const player = playersData?.find(p => p.id === item.player_id);
         if (!player || !item.bought_at) continue;
 
         const goals = await fetchGoalsForPlayerBetween(player.id, item.bought_at, item.sold_at || undefined);
-        if (!goals.length) continue;
+        if (!goals.length) {
+          breakdown[item.id] = { totalPoints: 0, totalGoals: 0, perTeam: {}, isSold: !!item.sold_at };
+          continue;
+        }
 
         const perTeam: Record<string, { goals: number; points: number }> = {};
         let playerPoints = 0;
@@ -361,10 +364,8 @@ const Dashboard: React.FC = () => {
           perTeam[effectiveTeam].goals += 1;
           perTeam[effectiveTeam].points += pts;
         }
-        if (playerPoints > 0) {
-          breakdown[item.id] = { totalPoints: playerPoints, totalGoals: goals.length, perTeam };
-          aggregatePoints += playerPoints;
-        }
+        breakdown[item.id] = { totalPoints: playerPoints, totalGoals: goals.length, perTeam, isSold: !!item.sold_at };
+        aggregatePoints += playerPoints;
       }
       setPointsBreakdown(breakdown);
       setTotalPoints(aggregatePoints);
@@ -899,7 +900,7 @@ const Dashboard: React.FC = () => {
               ) : (
                 <div className="space-y-4">
                   {userTeamAll
-                    .filter((item) => pointsBreakdown[item.id] && pointsBreakdown[item.id].totalPoints > 0)
+                    .filter((item) => !!pointsBreakdown[item.id])
                     .map((item) => {
                       const player = availablePlayers.find(p => p.id === item.player_id);
                       if (!player) return null;
@@ -911,12 +912,9 @@ const Dashboard: React.FC = () => {
                         <div key={item.id} className="border border-gray-200 rounded-lg p-4">
                           <div className="flex justify-between items-start mb-3">
                             <div>
-                              <h4 className="font-semibold text-gray-900">{player.name}</h4>
+                              <h4 className="font-semibold text-gray-900">{player.name}{breakdown?.isSold ? ' (verkocht)' : ''}</h4>
                               <p className="text-sm text-gray-600">{player.team} • {player.position}</p>
                               <p className="text-xs text-gray-500">Gekocht op: {new Date(item.bought_at).toLocaleDateString('nl-NL')}</p>
-                              {item.sold_at && (
-                                <span className="inline-block mt-1 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Verkocht</span>
-                              )}
                             </div>
                             <div className="text-right">
                               <span className="text-lg font-bold text-green-600">{pointsForPlayer} pt</span>
