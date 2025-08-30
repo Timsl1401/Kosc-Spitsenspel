@@ -1,4 +1,5 @@
-const CACHE_NAME = 'kosc-spitsenspel-v4';
+const CACHE_NAME = 'kosc-spitsenspel-v5';
+const NAVIGATION_FALLBACK_URL = '/index.html';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -31,13 +32,21 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
   // Skip caching for development
   if (isDevelopment) {
+    return;
+  }
+
+  // Handle navigation requests with network-first and offline fallback
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(NAVIGATION_FALLBACK_URL))
+    );
     return;
   }
 
