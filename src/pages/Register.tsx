@@ -56,7 +56,18 @@ const Register: React.FC = () => {
         setError(result.message);
       }
     } catch (error: any) {
-      setError(error.message || 'Er is een fout opgetreden bij het registreren');
+      let message = 'Er is een fout opgetreden bij het registreren'
+      if (error && typeof error.message === 'string' && error.message.trim().length > 0) {
+        message = error.message
+      } else {
+        try {
+          const serialized = JSON.stringify(error)
+          if (serialized && serialized !== '{}' && serialized !== 'null') {
+            message = serialized
+          }
+        } catch (_) {}
+      }
+      setError(message);
     } finally {
       setLoading(false);
     }

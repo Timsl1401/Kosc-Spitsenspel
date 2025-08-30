@@ -83,7 +83,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: `${siteUrl}/auth/callback`,
       },
     })
-    if (error) return { success: false, message: error.message }
+    if (error) {
+      // Normalize empty or non-string error messages to something readable
+      const normalizedMessage =
+        (error as any)?.message && typeof (error as any).message === 'string'
+          ? (error as any).message
+          : (() => {
+              try {
+                const asString = JSON.stringify(error)
+                if (asString && asString !== '{}' && asString !== 'null') return asString
+              } catch (_) {}
+              return 'Registratie mislukt. Probeer het later opnieuw.'
+            })()
+      return { success: false, message: normalizedMessage }
+    }
     if (data.user) return { success: true, message: 'Account aangemaakt. Check je e‑mail om te bevestigen.' }
     return { success: true, message: 'Account aangemaakt.' }
   }
