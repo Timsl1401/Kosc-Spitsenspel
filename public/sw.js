@@ -1,9 +1,9 @@
-const CACHE_NAME = 'kosc-spitsenspel-v3';
+const CACHE_NAME = 'kosc-spitsenspel-v4';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/FreeVeteraan.jpg'
+  '/Applogo.png'
 ];
 
 // Development mode check
