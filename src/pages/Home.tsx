@@ -42,7 +42,7 @@ const Home: React.FC = () => {
               <img
                 src="/Spitsenspellogo.png"
                 alt="KOSC Spitsenspel Logo"
-                className="relative top-[-60px] h-40 md:h-56 lg:h-64 object-contain mx-auto"
+                className="relative top-[-10px] h-40 md:h-56 lg:h-64 object-contain mx-auto"
               />
             </div>
             
