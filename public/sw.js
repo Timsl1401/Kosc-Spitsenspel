@@ -1,10 +1,11 @@
-const CACHE_NAME = 'kosc-spitsenspel-v6';
+const CACHE_NAME = 'kosc-spitsenspel-v7';
 const NAVIGATION_FALLBACK_URL = '/index.html';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/Applogo.png'
+  '/Applogo.png',
+  '/FotoKosc%20Zwart%20Wit.jpg'
 ];
 
 // Development mode check

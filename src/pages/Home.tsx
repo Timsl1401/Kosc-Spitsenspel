@@ -23,6 +23,9 @@ const Home: React.FC = () => {
             src="/FotoKosc Zwart Wit.jpg"
             alt="KOSC Voetbalwedstrijd"
             className="w-full h-full object-cover"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
           />
           {/* Overlay voor betere leesbaarheid */}
           <div className="absolute inset-0 bg-black bg-opacity-40"></div>
