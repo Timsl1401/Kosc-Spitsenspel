@@ -74,31 +74,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin
-    const { data, error } = await db.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { first_name: firstName, last_name: lastName },
-        emailRedirectTo: `${siteUrl}/auth/callback`,
-      },
-    })
-    if (error) {
-      // Normalize empty or non-string error messages to something readable
-      const normalizedMessage =
-        (error as any)?.message && typeof (error as any).message === 'string'
-          ? (error as any).message
-          : (() => {
-              try {
-                const asString = JSON.stringify(error)
-                if (asString && asString !== '{}' && asString !== 'null') return asString
-              } catch (_) {}
-              return 'Registratie mislukt. Probeer het later opnieuw.'
-            })()
-      return { success: false, message: normalizedMessage }
+    const siteUrl = import.meta.env.DEV
+      ? 'http://localhost:5173'
+      : (import.meta.env.VITE_SITE_URL || window.location.origin)
+    try {
+      const { data, error } = await db.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { first_name: firstName, last_name: lastName },
+          emailRedirectTo: `${siteUrl}/auth/callback`,
+        },
+      })
+      if (error) {
+        const status = (error as any)?.status
+        let message: string | null = null
+        if (status === 504) {
+          message = 'Tijdelijke storing (504) bij de aanmeldservice. Probeer het later opnieuw.'
+        }
+        if (!message) {
+          const raw = (error as any)?.message
+          message = typeof raw === 'string' && raw.trim().length > 0 ? raw : null
+        }
+        if (!message) {
+          try {
+            const asString = JSON.stringify(error)
+            if (asString && asString !== '{}' && asString !== 'null') message = asString
+          } catch (_) {}
+        }
+        if (!message) message = 'Registratie mislukt. Probeer het later opnieuw.'
+        return { success: false, message }
+      }
+      if (data.user) return { success: true, message: 'Account aangemaakt. Check je e‑mail om te bevestigen.' }
+      return { success: true, message: 'Account aangemaakt.' }
+    } catch (err: any) {
+      // Network or unexpected client error (e.g. fetch timeout)
+      const status = (err as any)?.status
+      if (status === 504) return { success: false, message: 'Tijdelijke storing (504). Probeer het later opnieuw.' }
+      const raw = err?.message
+      if (typeof raw === 'string' && raw.trim().length > 0) {
+        return { success: false, message: raw }
+      }
+      try {
+        const asString = JSON.stringify(err)
+        if (asString && asString !== '{}' && asString !== 'null') return { success: false, message: asString }
+      } catch (_) {}
+      return { success: false, message: 'Registratie mislukt door netwerkfout. Probeer het later opnieuw.' }
     }
-    if (data.user) return { success: true, message: 'Account aangemaakt. Check je e‑mail om te bevestigen.' }
-    return { success: true, message: 'Account aangemaakt.' }
   }
 
   const signOut = async () => {
