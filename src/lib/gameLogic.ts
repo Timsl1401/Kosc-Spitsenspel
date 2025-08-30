@@ -17,7 +17,9 @@ const TEAM_POINTS: Record<string, number> = {
 export function getTeamPoints(teamName: string): number {
   if (!teamName) return 1
   // Exacte mapping eerst; zo niet, fallback naar case-insensitive normalisatie
-  if (TEAM_POINTS[teamName] != null) return TEAM_POINTS[teamName]
+  if (Object.prototype.hasOwnProperty.call(TEAM_POINTS, teamName)) {
+    return TEAM_POINTS[teamName]
+  }
   const normalized = teamName.trim().toLowerCase()
   const found = Object.entries(TEAM_POINTS).find(([key]) => key.toLowerCase() === normalized)
   return found ? found[1] : 1

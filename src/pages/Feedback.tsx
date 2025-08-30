@@ -90,8 +90,6 @@ const Feedback: React.FC = () => {
                 <Star className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="font-semibold text-gray-800">Website</p>
-                <p className="text-gray-600">www.kosc.nl</p>
               </div>
             </div>
           </div>
@@ -170,24 +168,7 @@ const Feedback: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label htmlFor="rating" className="block text-sm font-medium text-gray-700 mb-1">
-                Beoordeling
-              </label>
-              <select
-                id="rating"
-                name="rating"
-                value={formData.rating}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                <option value="5">⭐⭐⭐⭐⭐ Uitstekend</option>
-                <option value="4">⭐⭐⭐⭐ Zeer goed</option>
-                <option value="3">⭐⭐⭐ Goed</option>
-                <option value="2">⭐⭐ Redelijk</option>
-                <option value="1">⭐ Slecht</option>
-              </select>
-            </div>
+            
 
             <div>
               <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">

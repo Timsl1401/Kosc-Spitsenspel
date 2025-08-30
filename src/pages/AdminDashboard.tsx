@@ -247,7 +247,7 @@ const AdminDashboard: React.FC = () => {
       console.log('Adding goals:', { player: player.name, goals: goalsToAdd, date: matchDate, type: matchType });
 
       // First, create a match if it doesn't exist
-      let matchId = null;
+      let matchId: string | null = null;
       if (matchDate && matchType) {
         const competition = matchType === 'competition' ? 'competitie' : 'beker';
         const newMatchId = await adminCreateMatch({
@@ -262,13 +262,19 @@ const AdminDashboard: React.FC = () => {
         matchId = newMatchId;
       }
 
+      // Precompute stable payload fields
+      const createdAt = matchDate
+        ? new Date(`${matchDate}T12:00:00Z`).toISOString()
+        : new Date().toISOString();
+      const teamCode = (guestTeamCode?.trim() || player.team).trim();
+
       // Add goals to the goals table
       for (let i = 0; i < goalsToAdd; i++) {
         const ok = await adminInsertGoalWithTeam({
-          match_id: matchId as any,
+          match_id: matchId!,
           player_id: selectedPlayer,
-          team_code: guestTeamCode || player.team,
-          created_at: matchDate || new Date().toISOString()
+          team_code: teamCode,
+          created_at: createdAt
         });
         if (!ok) throw new Error('Error adding goal');
       }
