@@ -19,14 +19,17 @@ const Home: React.FC = () => {
       <div className="relative overflow-hidden rounded-lg shadow-lg">
         {/* Achtergrond afbeelding */}
         <div className="absolute inset-0">
-          <img
-            src="/FotoKosc Zwart Wit.jpg"
-            alt="KOSC Voetbalwedstrijd"
-            className="w-full h-full object-cover"
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-          />
+          <picture>
+            <source srcSet="/foto-bw-2000.jpg 2000w, /foto-bw-1200.jpg 1200w, /foto-bw-800.jpg 800w, /foto-bw-480.jpg 480w" type="image/jpeg" />
+            <img
+              src="/foto-bw-1200.jpg"
+              alt="KOSC Voetbalwedstrijd"
+              className="w-full h-full object-cover"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </picture>
           {/* Overlay voor betere leesbaarheid */}
           <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         </div>

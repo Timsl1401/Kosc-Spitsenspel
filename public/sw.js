@@ -5,7 +5,10 @@ const urlsToCache = [
   '/index.html',
   '/manifest.json',
   '/Applogo.png',
-  '/FotoKosc%20Zwart%20Wit.jpg'
+  '/foto-bw-2000.jpg',
+  '/foto-bw-1200.jpg',
+  '/foto-bw-800.jpg',
+  '/foto-bw-480.jpg'
 ];
 
 // Development mode check
